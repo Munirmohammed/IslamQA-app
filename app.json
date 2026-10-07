@@ -33,7 +33,12 @@
           "imageWidth": 76
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so we can check your Quran recitation."
+        }
+      ],
       "expo-secure-store",
       "expo-font"
     ],
