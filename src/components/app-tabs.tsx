@@ -26,6 +26,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="book.fill" />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="practice">
+        <NativeTabs.Trigger.Label>Practice</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="mic.fill" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.fill" />
