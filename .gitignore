@@ -30,7 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (the tunnel URL in .env is ephemeral/per-dev-session --
+# only .env.example is committed)
+.env
 .env*.local
 
 # typescript
