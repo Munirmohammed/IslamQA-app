@@ -72,10 +72,17 @@ padding.
 - `IslamQA-app/.env` holds `EXPO_PUBLIC_API_URL=<that tunnel URL>` — **update
   it** when the tunnel URL changes (ngrok free tier URLs are not stable
   across restarts).
-- **Not yet done**: actually opening the app in Expo Go on the user's
-  iPhone and confirming it works end-to-end. This is the very next step.
-  Everything up through F1 is built and verified by typecheck/bundle-export,
-  but **never yet confirmed on a real device.**
+- **Real-device testing has started** (as of a parallel session that ran
+  alongside this one): the app has been opened in Expo Go on the user's
+  iPhone for the first time, which immediately surfaced three real bugs
+  now fixed — see §4 items 10-12 (ASR/search blocking the event loop,
+  `create_tables()` missing from real app startup, and the FormData upload
+  incompatibility). The app also now has a real identity: **"Qalam"** (قلم,
+  "pen"), with a bespoke animated SVG launch sequence
+  (`src/components/launch-animation.tsx`) replacing the generic Expo
+  template splash. **Still not confirmed**: a full, successful end-to-end
+  walkthrough (browse → auth → record a recitation → see mistakes
+  highlighted) with no further bugs. Keep testing from here.
 - Real alternative fix for the LAN issue, if revisited: either (a) the user
   manually flips their WiFi network to "Private" in Windows Settings (a
   plain user-level toggle, no admin needed, usually), or (b) run an elevated
@@ -244,6 +251,32 @@ area again.
 9. **expo-audio recording presets default to M4A/AAC** — see #5. Also:
    `expo-av` is fully removed from Expo Go as of SDK 55; always use
    `expo-audio`.
+10. **CPU-bound work inside `async def` doesn't yield to the event loop by
+    itself.** `check_recitation`'s Whisper transcription and
+    `VoiceSearchService.search`'s FAISS/BM25/rerank work are both plain
+    synchronous calls — being inside an `async def` function does nothing
+    on its own; without an explicit `await asyncio.to_thread(...)`, one
+    slow request blocks every other in-flight request (even unrelated ones
+    like `/health`) for its full duration. Fixed in both places. **Check
+    for this same pattern before adding more synchronous-but-slow backend
+    work** (tajweed/tafsir lookups are cheap enough not to matter; a future
+    heavy call might not be).
+11. **`create_tables()` was never called from real app startup** — only
+    from test fixtures (`tests/conftest.py`) and the one-off seed script.
+    `app/main.py`'s lifespan now calls it (idempotent, `CREATE TABLE IF NOT
+    EXISTS` semantics, safe on every startup) before initializing services.
+    Before this fix, every table added from Phase 3 onward
+    (`UserStreak`, `MemorizationCard`, `RecitationSession`, `Halaqa`, ...)
+    silently didn't exist in a real (non-test) run of the app.
+12. **React Native's classic FormData `{uri, name, type}` file shape
+    doesn't work with Expo SDK 57's `fetch` polyfill at all** — it throws
+    "Unsupported FormDataPart implementation" (the polyfill's
+    `convertFormData.ts` only accepts a real Blob/File-like value with a
+    `.bytes()` method). `src/lib/api-client.ts`'s `apiUpload` now uses
+    `expo-file-system`'s `File#upload()` (`UploadType.MULTIPART`) instead
+    of `fetch` + `FormData` for the recitation-check upload — it bypasses
+    `fetch` entirely for that one call. If any future feature needs another
+    file upload, reuse `apiUpload`, don't reintroduce raw FormData.
 
 ---
 
