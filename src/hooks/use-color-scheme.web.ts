@@ -8,6 +8,11 @@ export function useColorScheme() {
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    // Intentional one-time hydration flag, not state synced from an
+    // external system -- this is the standard fix for a static-rendering
+    // hydration mismatch (server/first paint renders 'light', then this
+    // flips once the client's real color scheme is safe to read).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasHydrated(true);
   }, []);
 

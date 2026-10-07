@@ -22,8 +22,8 @@ export default function SurahListScreen() {
 
         {error && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn't reach the server. Check that the backend and tunnel are running, and that
-            EXPO_PUBLIC_API_URL is set.
+            Couldn&apos;t reach the server. Check that the backend and tunnel are running, and
+            that EXPO_PUBLIC_API_URL is set.
           </ThemedText>
         )}
 

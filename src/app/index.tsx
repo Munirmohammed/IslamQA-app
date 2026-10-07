@@ -6,10 +6,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useMe } from '@/features/auth/api';
-import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeScreen() {
-  const theme = useTheme();
   const { data: me } = useMe();
 
   return (

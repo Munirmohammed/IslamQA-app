@@ -4,6 +4,8 @@
  * just knows how to make one authenticated request and surface backend
  * errors in a useful shape.
  */
+import { File, UploadType } from 'expo-file-system';
+
 import { useAuthStore } from '@/stores/auth-store';
 
 import { API_BASE_URL } from '@/config/env';
@@ -75,22 +77,55 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return response.json() as Promise<T>;
 }
 
-/** For multipart uploads (audio recitation checks, Phase 2) -- FormData
- * sets its own Content-Type boundary, so it must bypass the JSON/form
- * branches above entirely. */
-export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+interface UploadOptions {
+  fieldName: string;
+  mimeType: string;
+  /** Additional multipart form fields sent alongside the file. */
+  fields?: Record<string, string>;
+}
+
+/** For multipart file uploads (audio recitation checks, Phase 2). Goes
+ * through expo-file-system's native multipart upload rather than
+ * fetch+FormData: Expo's own global `fetch` polyfill (SDK 57's
+ * `expo/winter/fetch`) only accepts a real Blob/File-like value with a
+ * `.bytes()` method for FormData file parts -- it silently can't handle
+ * React Native's classic `{uri, name, type}` FormData shape at all (see
+ * convertFormData.ts: "`uri` is not supported for React Native's
+ * FormData"), which is what threw "Unsupported FormDataPart
+ * implementation". `File#upload` bypasses fetch entirely. */
+export async function apiUpload<T>(
+  path: string,
+  fileUri: string,
+  { fieldName, mimeType, fields }: UploadOptions
+): Promise<T> {
   const headers: Record<string, string> = {};
   const token = useAuthStore.getState().accessToken;
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
+  const file = new File(fileUri);
+  const result = await file.upload(`${API_BASE_URL}${path}`, {
+    uploadType: UploadType.MULTIPART,
+    fieldName,
+    mimeType,
+    parameters: fields,
     headers,
-    body: formData,
   });
 
-  if (!response.ok) {
-    throw new ApiError(response.status, await parseErrorDetail(response));
+  if (result.status < 200 || result.status >= 300) {
+    throw new ApiError(result.status, parseUploadErrorDetail(result.body));
   }
-  return response.json() as Promise<T>;
+  return JSON.parse(result.body) as T;
+}
+
+function parseUploadErrorDetail(body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed.detail === 'string') return parsed.detail;
+    if (Array.isArray(parsed.detail)) {
+      return parsed.detail.map((e: { msg?: string }) => e.msg).join(', ');
+    }
+  } catch {
+    // Not JSON -- fall through.
+  }
+  return body;
 }

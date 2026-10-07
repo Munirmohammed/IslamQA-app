@@ -26,7 +26,7 @@ export default function SurahDetailScreen() {
 
         {error && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn't load this surah.
+            Couldn&apos;t load this surah.
           </ThemedText>
         )}
 
