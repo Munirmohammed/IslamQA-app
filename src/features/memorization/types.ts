@@ -39,3 +39,23 @@ export interface SimilarAyahsResponse {
   ayah: number;
   similar: SimilarAyah[];
 }
+
+export interface SurahProgress {
+  surah_number: number;
+  surah_name_en: string;
+  total_ayahs: number;
+  ayahs_tracked: number;
+  ayahs_learned: number;
+}
+
+export interface JuzProgress {
+  juz: number;
+  total_ayahs: number;
+  ayahs_tracked: number;
+  ayahs_learned: number;
+}
+
+export interface ProgressResponse {
+  surahs: SurahProgress[];
+  juz: JuzProgress[];
+}

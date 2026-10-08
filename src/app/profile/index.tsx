@@ -115,6 +115,18 @@ function ProfileDetails() {
         </Pressable>
       </Link>
 
+      <Link href="/profile/garden" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="primaryMuted" style={[styles.submitButton, pressed && styles.pressed]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                Hifz Garden
+              </ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+
       <Link href="/profile/halaqa" asChild>
         <Pressable>
           {({ pressed }) => (

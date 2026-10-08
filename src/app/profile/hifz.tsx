@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,6 +29,12 @@ export default function HifzReviewScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        <Link href="/profile/garden" style={styles.gardenLink}>
+          <ThemedText type="small" themeColor="primary">
+            🌱 View your Hifz Garden
+          </ThemedText>
+        </Link>
+
         {isLoading && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
             Loading your review queue…
@@ -124,6 +131,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
   },
   counter: {
+    textAlign: 'center',
+  },
+  gardenLink: {
     textAlign: 'center',
   },
   card: {

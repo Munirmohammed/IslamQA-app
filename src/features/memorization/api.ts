@@ -7,6 +7,7 @@ import type {
   AddCardsInput,
   CardResponse,
   DueCard,
+  ProgressResponse,
   ReviewCardInput,
   SimilarAyahsResponse,
 } from './types';
@@ -27,7 +28,17 @@ export function useAddToMemorization() {
       apiRequest<CardResponse[]>('/api/v1/memorization/add', { method: 'POST', body: input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['memorization', 'due'] });
+      queryClient.invalidateQueries({ queryKey: ['memorization', 'progress'] });
     },
+  });
+}
+
+export function useMemorizationProgress() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['memorization', 'progress'],
+    queryFn: () => apiRequest<ProgressResponse>('/api/v1/memorization/progress'),
+    enabled: !!accessToken,
   });
 }
 
@@ -50,6 +61,7 @@ export function useReviewCard() {
       apiRequest<CardResponse>('/api/v1/memorization/review', { method: 'POST', body: input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['memorization', 'due'] });
+      queryClient.invalidateQueries({ queryKey: ['memorization', 'progress'] });
     },
   });
 }
