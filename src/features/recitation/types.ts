@@ -26,3 +26,30 @@ export interface RecitationCheckInput {
   surah?: number;
   ayah?: number;
 }
+
+// Mirrors app/api/v1/endpoints/recitation.py's MistakePatternSummary.
+
+export interface MistakesByType {
+  incorrect: number;
+  missed: number;
+  extra: number;
+}
+
+export interface MistakenWord {
+  word: string;
+  count: number;
+}
+
+export interface SurahMistakeBreakdown {
+  surah_number: number;
+  session_count: number;
+  correct_rate: number;
+}
+
+export interface MistakePatternSummary {
+  total_sessions: number;
+  correct_rate: number | null;
+  mistakes_by_type: MistakesByType;
+  top_mistaken_words: MistakenWord[];
+  surah_breakdown: SurahMistakeBreakdown[];
+}

@@ -6,6 +6,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="hifz" options={{ title: 'Hifz Review' }} />
       <Stack.Screen name="garden" options={{ title: 'Hifz Garden' }} />
+      <Stack.Screen name="coach" options={{ title: 'Tajweed Coach' }} />
       <Stack.Screen name="halaqa" options={{ title: 'Halaqa' }} />
       <Stack.Screen name="halaqa-roster" options={{ title: '' }} />
       <Stack.Screen name="halaqa-student" options={{ title: '' }} />

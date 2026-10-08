@@ -127,6 +127,18 @@ function ProfileDetails() {
         </Pressable>
       </Link>
 
+      <Link href="/profile/coach" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="primaryMuted" style={[styles.submitButton, pressed && styles.pressed]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                Tajweed Coach
+              </ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+
       <Link href="/profile/halaqa" asChild>
         <Pressable>
           {({ pressed }) => (
