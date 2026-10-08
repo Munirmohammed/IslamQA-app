@@ -2,9 +2,10 @@
 
 **Read this whole file before doing anything.** This is the single source of
 truth for a new Claude Code session picking up this project cold. It covers
-the vision, everything already built, everything planned, every real bug
-already found and fixed (so they don't get rediscovered), and exactly how to
-resume.
+the vision, everything already built, every real bug already found and
+fixed (so they don't get rediscovered), what's genuinely next, and exactly
+what's blocked on something only the user can do (a real device, an EAS
+build, native Swift) rather than more Claude Code time.
 
 ---
 
@@ -20,11 +21,15 @@ don't cover. Two repos, built together:
   Q&A chatbot (scraped fatwa Q&A, hybrid search), then grew a second, much
   bigger product surface: a full AI-powered Quran platform (voice search,
   recitation checking, gamification, memorization, tajweed, teacher mode,
-  tafsir). **7 phases shipped, fully tested.**
+  tafsir). **7 phases shipped**, plus a small Phase 3 extension (daily
+  activity history) and a dev-mode CORS fix added this session. **185
+  backend tests passing.**
 - **Frontend** (`C:\Users\yeabs\Desktop\me\IslamQA-app`, GitHub:
   `Munirmohammed/IslamQA-app`) — React Native + Expo, iOS first (the user's
-  own iPhone is the test device), then Android, then web, all from one
-  codebase. **F0 and F1 shipped.**
+  own iPhone is the test device, via Expo Go), then Android, then web, all
+  from one codebase. **F0 through F7 shipped** (see §5) — every backend
+  phase that had a ready, unused API now has a real screen built against
+  it. The app has a real brand identity: **"Qalam"** (قلم, "pen").
 
 The user's own words on ambition: *"use all our advanced backend systems and
 also add more features that we cant even imagine of ... that are not
@@ -35,83 +40,96 @@ padding.
 **Working style established across this whole project (follow it exactly):**
 1. Before building on any external API/library, **verify it for real**
    (curl it, read its actual response shape, check actual version/package
-   availability) — don't assume from training knowledge, which is often
-   stale by the time you're building. This caught real bugs every single
-   phase (see §4).
-2. For anything non-trivial, write a short plan (context, what's being
-   built, why, what's deferred and why) and get it approved before writing
-   code. Keep plans honest: explicitly say what's *not* being built and why
-   (e.g. "real audio-liveness anti-cheat needs dedicated audio-ML research,
-   not attempted here — a narrow duplicate-hash check is, and is labeled as
-   such").
-3. Ship one complete, demoable vertical slice at a time. Test it for real
-   (full test suite for backend; typecheck + `expo export` bundle check for
-   frontend, since there's no device in this dev loop by default). Commit.
-   Push. Then move to the next slice.
+   availability, fetch the real current Expo docs) — don't assume from
+   training knowledge, which is often stale by the time you're building.
+   This caught real bugs constantly (see §4).
+2. For anything non-trivial, write a short plan and get it approved before
+   writing code. Keep plans honest: explicitly say what's *not* being built
+   and why.
+3. Ship one complete, demoable vertical slice at a time. **Actually test
+   it** — not just typecheck/lint, but exercise the real behavior: a
+   headless browser (Playwright) driving the web target for UI/crash
+   verification, direct `curl` calls against the live backend for data
+   correctness, and the real test suite for backend logic. Typecheck and
+   lint catch syntax, not behavior — this session's biggest lesson was that
+   several real bugs (a stuck "Unmatched Route" crash, a silent file-write
+   no-op, a nested-touchable conflict) were only caught by actually running
+   the thing, never by typecheck alone.
 4. Never fake a feature to look more finished than it is. If something is
-   genuinely hard (on-device ASR, Apple Watch, real anti-cheat), say so
-   plainly and defer it rather than building a shallow version that implies
-   more than it delivers.
+   genuinely hard or blocked on something only the user can do (on-device
+   ASR, Apple Watch, a real device, an EAS build), say so plainly and defer
+   it — see §6 for the current honest list.
 
 ---
 
 ## 1. Current State (exactly where things stopped)
 
-- Backend is **running locally** on this machine, port 8000
-  (`python -m uvicorn app.main:app --host 0.0.0.0 --port 8000` from the
-  `IslamQA` repo root, venv at `IslamQA\.venv`).
-- **The phone can't reach the backend over plain LAN**: this machine's WiFi
-  network is categorized as Windows "Public" profile, and there's no
-  firewall allow-rule for this project's specific venv python.exe (only for
-  a couple of *other* Python installs on this machine) — Claude doesn't have
-  admin rights to add one. **Workaround in place: ngrok.** An ngrok tunnel
-  is already authenticated on this machine and was running at
-  `https://siamese-kinetic-smolder.ngrok-free.dev` (a free ngrok tunnel URL
-  — it will have changed/died by the time you read this; restart with
-  `ngrok http 8000` and copy the new `https://...ngrok-free.dev` URL).
-- `IslamQA-app/.env` holds `EXPO_PUBLIC_API_URL=<that tunnel URL>` — **update
-  it** when the tunnel URL changes (ngrok free tier URLs are not stable
-  across restarts).
-- **Real-device testing has started** (as of a parallel session that ran
-  alongside this one): the app has been opened in Expo Go on the user's
-  iPhone for the first time, which immediately surfaced three real bugs
-  now fixed — see §4 items 10-12 (ASR/search blocking the event loop,
-  `create_tables()` missing from real app startup, and the FormData upload
-  incompatibility). The app also now has a real identity: **"Qalam"** (قلم,
-  "pen"), with a bespoke animated SVG launch sequence
-  (`src/components/launch-animation.tsx`) replacing the generic Expo
-  template splash. **Still not confirmed**: a full, successful end-to-end
-  walkthrough (browse → auth → record a recitation → see mistakes
-  highlighted) with no further bugs. Keep testing from here.
-- Real alternative fix for the LAN issue, if revisited: either (a) the user
-  manually flips their WiFi network to "Private" in Windows Settings (a
-  plain user-level toggle, no admin needed, usually), or (b) run an elevated
-  PowerShell once: `New-NetFirewallRule -DisplayName "IslamQA backend" -Direction Inbound -Action Allow -Program "C:\Users\yeabs\Desktop\me\IslamQA\.venv\Scripts\python.exe" -Protocol TCP -LocalPort 8000 -Profile Any`.
-  Either removes the need for ngrok entirely for same-network testing.
+- Backend is **running locally**, port 8000, from `IslamQA\.venv` (the
+  project's dedicated venv — see §4 item 14 for a real gotcha about this).
+- **Network has changed multiple times this session** — don't trust any IP
+  written down here without re-checking. At last check the machine was on
+  WiFi network `ETHIOTELECOM-F14-GUEST`, IP `192.168.140.152`, categorized
+  "Public" by Windows. `IslamQA-app/.env` holds
+  `EXPO_PUBLIC_API_URL=http://192.168.140.152:8000` — **re-verify this
+  against the actual current IP** (`ipconfig` / `Get-NetIPAddress`) before
+  trusting it; a network switch (different WiFi, hotspot on/off) changes it
+  silently and nothing will connect until `.env` is updated and Metro is
+  restarted with `--clear` (env vars are inlined into the JS bundle at
+  build time, so editing `.env` alone does nothing until Metro rebuilds).
+- **A port-based Windows Firewall rule exists** — `New-NetFirewallRule
+  -DisplayName "IslamQA backend (port 8000)" -Direction Inbound -Action
+  Allow -Protocol TCP -LocalPort 8000 -Profile Any` — this is the *correct*
+  fix (see §4 item 14 for why a program-path-based rule silently doesn't
+  work for this specific venv). If the phone can't reach the backend again
+  on a new network, re-run that exact command (needs an elevated
+  PowerShell — the user has to do this, Claude Code doesn't have admin
+  rights) rather than trying ngrok or a program-path rule again.
+- **Demo accounts exist** for quick testing, already seeded with realistic
+  data via `IslamQA/scripts/seed_gamification_demo_data.py` (idempotent,
+  safe to re-run): username `demo`, password `demo123` (14-day streak,
+  8040 hasanat, ranks #1 on the leaderboard), plus 4 more seeded accounts
+  (`Aisha_Q`, `Yusuf92`, `Fatima_reads`, `Omar_K`) so the leaderboard and
+  heatmap don't look empty. Also `demo_tester` / `TestPass123!` from
+  earlier ad-hoc testing (joined to a test halaqa).
+- **Everything in §5 (F0-F7) has been self-tested** by Claude (Playwright
+  against the web target + direct backend `curl` calls + the real pytest
+  suite) but **not yet confirmed on the real iPhone** as of this session
+  ending — the user was away from their phone and asked Claude to keep
+  building and self-testing, with a full on-device pass to happen next.
+  **That on-device pass is the single most important next action.**
+- `src/components/launch-animation.tsx` is the real app-launch sequence:
+  the Qalam mark (a pen-stroke swash, path data shared via
+  `src/constants/brand-mark.ts`) draws itself, spins once, reveals a
+  "قلم / Qalam" wordmark, then settles. Built with `react-native-svg` +
+  `react-native-reanimated`.
 
 ### To resume right now:
 ```powershell
 # Terminal 1 — backend
 cd C:\Users\yeabs\Desktop\me\IslamQA
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-# Terminal 2 — tunnel (until the firewall/network-profile issue above is fixed properly)
-ngrok http 8000
-# copy the https://....ngrok-free.dev URL it prints
+# Check current IP and update IslamQA-app\.env if it's changed:
+# EXPO_PUBLIC_API_URL=http://<current-ip>:8000
 
-# Update IslamQA-app/.env:
-# EXPO_PUBLIC_API_URL=https://<that-url>
-
-# Terminal 3 — frontend
+# Terminal 2 — frontend (--clear is important if .env just changed)
 cd C:\Users\yeabs\Desktop\me\IslamQA-app
-npm install   # if not already done
-npm start
-# scan the QR code with Expo Go on the iPhone
+npx expo start --clear
+# scan the QR code with Expo Go on the iPhone, or "Enter URL manually"
 ```
+
+If the phone can't reach the backend: confirm both devices are on the
+*same* WiFi network, confirm the firewall rule from above exists and is
+enabled (`Get-NetFirewallRule -DisplayName "IslamQA backend (port 8000)"`),
+confirm Windows categorizes that network as anything (the port-based rule
+uses `-Profile Any` so this shouldn't matter, but verify) — do **not**
+reach for ngrok as a first resort this time; the backend tunnel pattern
+from early in this project had its own problems (see §4 item 15) and the
+direct-LAN fix is more reliable once the firewall rule is in place.
 
 ---
 
-## 2. Backend — Phases 1-7 (all shipped, 173 tests passing)
+## 2. Backend — Phases 1-8 (all shipped), plus this session's additions
 
 Repo: `C:\Users\yeabs\Desktop\me\IslamQA`. Pre-existing before this whole
 Quran initiative: an Islamic Q&A chatbot backend (scraped fatwa Q&A from
@@ -125,12 +143,12 @@ infrastructure across every Quran phase below.
 |---|-------|---------------|-----------|
 | 1 | Voice search ("Tasmeea") | Recite/type a Quran fragment → find the matching ayah. Reuses the Q&A hybrid retrieval stack pointed at ayah text instead of Q&A pairs. | `quran_corpus_service.py`, `voice_search_service.py` |
 | 2 | Recitation mistake-checker | Upload audio → self-hosted Whisper ASR (`tarteel-ai/whisper-base-ar-quran`) → transcript → word-level diff (`difflib`) against canonical ayah → incorrect/missed/extra word list. | `recitation_asr_service.py`, `recitation_diff_service.py`, `endpoints/recitation.py` |
-| 3 | Gamification | Streaks, hasanat (reward count — real hadith-based 10x-per-letter, not an arbitrary score), global leaderboard. | `gamification_service.py` |
+| 3 | Gamification | Streaks, hasanat (reward count — real hadith-based 10x-per-letter, not an arbitrary score), global leaderboard. **Extended this session**: a `daily_activity` table + `GET /gamification/history` endpoint, zero-filled per-day verse/hasanat totals — the real calendar-heatmap data source the original Phase 3 (`UserStreak` alone) couldn't answer. | `gamification_service.py` |
 | 4 | Memorization (Hifz) | Standard SM-2 spaced repetition, gradeable directly *or* derived from a Phase 2 mistake count. Mutashabihat (confusable-verse) lookup reuses Phase 1's search engine with zero new infra. | `srs_service.py` |
-| 5 | Tajweed annotation | Which letters carry which tajweed rule (qalqalah, madd, idgham, ikhfa...), sourced from Quran.com's own tajweed-coloring API. | `tajweed_service.py` |
-| 6 | Halaqa/teacher mode | Teacher creates a circle, students join by code, teacher reviews recitation history. Also finally persists Phase 2's recitation checks to the DB (`RecitationSession`/`MistakeLog`), deliberately deferred until this phase needed it. | `halaqa_service.py` |
+| 5 | Tajweed annotation | Which letters carry which tajweed rule (qalqalah, madd, idgham, ikhfa...), sourced from Quran.com's own tajweed-coloring API. **17 raw rule codes** — see §4 item 16 for why the frontend groups them into 7 color families instead of using all 17. | `tajweed_service.py` |
+| 6 | Halaqa/teacher mode | Teacher creates a circle, students join by code, teacher reviews recitation history. Also persists Phase 2's recitation checks to the DB (`RecitationSession`/`MistakeLog`). | `halaqa_service.py` |
 | 7 | Tafsir lookup + search | Real Quranic exegesis (Ibn Kathir Abridged, English) per ayah, plus free-text search over the whole tafsir corpus using the same Phase 1 retrieval pattern. | `tafsir_service.py`, `tafsir_search_service.py` |
-| 8 | Quran content/browse API | Plain `GET /quran/surahs` + `GET /quran/{surah}` — the Mushaf-reading endpoint none of the above needed until the frontend did. | `endpoints/quran.py` |
+| 8 | Quran content/browse API | Plain `GET /quran/surahs` + `GET /quran/{surah}` — the Mushaf-reading endpoint. | `endpoints/quran.py` |
 
 **Deliberately *not* built, and why (don't silently try to "complete" these
 without re-reading the reasoning — they were skipped on purpose):**
@@ -139,26 +157,32 @@ without re-reading the reasoning — they were skipped on purpose):**
   duplicate-audio-hash flag (same file submitted by two different accounts).
 - Acoustic tajweed scoring (measuring actual madd duration/ghunnah from
   audio) — same research-grade category, deferred.
-- Apple Watch, true on-device offline ASR — see frontend catalog, same
-  treatment.
+- Apple Watch, true on-device offline ASR — see §6, same treatment.
+- **Reciter audio serving** (a library of reference recitation audio to
+  download/play) — confirmed by reading every endpoint file that this does
+  **not exist**. `recitation.py`'s audio handling is upload-for-checking
+  only. This matters: the frontend's offline-packs feature (F7) is
+  deliberately text-only because of this — see F7 below.
 
 ### Backend #9-13 (planned, not yet built — pull forward exactly when the
 frontend phase needing them starts):
 - **#9 Mistake-pattern analytics** — aggregate Phase 6's persisted
   `MistakeLog` data: "this user most often misses qalqalah on ق." Needed
-  for the frontend's "Tajweed Coach" (F4).
+  for a future "Tajweed Coach" dashboard (F4's tajweed coloring itself is
+  now shipped; the personalized-coach layer on top is still backend-#9-
+  gated).
 - **#10 Assignments** — teacher assigns an ayah range + due date in a
-  halaqa; student's matching `RecitationSession`s auto-satisfy it. Needed
-  for F6.
+  halaqa; student's matching `RecitationSession`s auto-satisfy it. F6's
+  core (roster, per-student drill-down) is shipped; this is the one piece
+  of the original F6 sketch still deferred.
 - **#11 Social graph** — `FriendRequest`/`Friendship` + a `scope=friends`
   leaderboard option (Phase 3's leaderboard is global-only right now).
-  Needed for F10.
-- **#12 Push notifications** — device token registration + a
-  dispatch service (Expo's push service brokers both APNs and FCM from one
-  API). Nothing like this exists yet. Needed for F10.
+  Needed for F10 (Android parity pass).
+- **#12 Push notifications** — device token registration + a dispatch
+  service (Expo's push service brokers both APNs and FCM from one API).
+  Nothing like this exists yet. Needed for F10.
 - **#13 Reading plans** — structured multi-day plans ("Quran in Ramadan")
-  scheduling `gamification.log_progress` targets — generalizes Phase 3's
-  deferred "challenges." Needed for F10.
+  scheduling `gamification.log_progress` targets. Needed for F10.
 
 ---
 
@@ -166,23 +190,48 @@ frontend phase needing them starts):
 
 - **React Native + Expo**, not native Swift/Kotlin, not Flutter. One
   codebase → iOS + Android + (Expo web export) web.
-- **No Mac needed, ever.** EAS Build (Expo's cloud build service) compiles
-  signed iOS binaries on Expo-hosted macOS workers. The user has no Mac
-  (a friend does, as a fallback only, never required). Expo Go (free App
-  Store app) is how the iPhone runs the app during early development with
-  zero native build step at all.
-- Expo SDK 57 (stable; 58 was still beta at scaffold time — check if it's
-  stable now and consider upgrading), React Native 0.86-ish, **New
-  Architecture mandatory** (Fabric/TurboModules, not optional since SDK 55).
-  TypeScript. Expo Router (file-based, `src/app/`).
+- **No Mac needed, ever.** EAS Build compiles signed iOS binaries on
+  Expo-hosted macOS workers. Expo Go (free App Store app) is how the
+  iPhone runs the app during early development with zero native build
+  step — this remains true through F0-F7; **F8 onward needs an EAS
+  development build**, the first time this stops being true (see §6).
+- Expo SDK 57, React Native 0.86.x, **New Architecture mandatory**
+  (Fabric/TurboModules). TypeScript. Expo Router (file-based, `src/app/`),
+  **React Compiler enabled** — see §4 item 17 for a real purity-rule
+  gotcha this caused.
 - **State**: TanStack Query (all server state) + Zustand (client state
-  only — theme, the access token). This split is deliberate; don't
-  reintroduce a Redux-style "copy API data into a global store" pattern.
-- **Audio**: `expo-audio`, not the deprecated `expo-av`. See §4 for the
-  critical WAV-format gotcha.
+  only — theme, the access token). Don't reintroduce a Redux-style "copy
+  API data into a global store" pattern.
+- **Audio**: `expo-audio`, not the deprecated `expo-av`.
+- **File system / uploads / downloads**: `expo-file-system`'s newer
+  `File`/`Directory`/`Paths` class API (not the older function-based API).
+  Used for: multipart upload (`src/lib/api-client.ts`'s `apiUpload`),
+  the shareable-ayah-card image capture pairing with `react-native-view-shot`
+  + `expo-sharing`, and F7's offline surah packs (`src/lib/offline-packs.ts`).
+  **Has no web implementation** — confirmed (warns "expo-file-system is
+  not supported on web" and no-ops rather than crashing); every
+  `offline-packs.ts` function is wrapped defensively so this degrades
+  gracefully rather than breaking the app on platforms without it.
+- **Text-to-speech**: `expo-speech`, used by Practice's hands-free session
+  mode. Confirmed Expo Go compatible (`npx expo install expo-speech`, no
+  dev build needed) before using it — don't assume, the project's own
+  rule is to check every time.
 - Path alias `@/` → `src/`. Repo root has its own `package.json`, fully
   separate from the Python backend (sibling folder, separate git history,
   separate GitHub repo).
+- **Self-testing method established this session**: since there's no
+  real device in Claude's own dev loop, the verification pattern that
+  actually catches bugs is `npx expo start --web --port 19006` (a
+  *separate* web instance from the one serving the phone on 8081, so
+  testing doesn't disrupt the phone's connection) + a headless Chromium
+  via Playwright (`npx playwright install chromium`, installed once this
+  session) driving it. This caught several real bugs (see §4) that
+  typecheck/lint never would have. Known limitations of this method:
+  `expo-secure-store`, `expo-file-system`'s File API, and real microphone
+  input don't work on web, so auth-gated and file/audio-dependent flows
+  can only be verified structurally (renders without crashing, correct
+  data threading) on web — their actual behavior still needs the real
+  device for full confidence.
 
 ---
 
@@ -194,294 +243,368 @@ area again.
 
 1. **Basmalah embedded in ayah 1 text** (alquran.cloud's `quran-uthmani`
    edition prefixes every surah's ayah 1 — except Al-Fatiha and At-Tawbah —
-   with the Basmalah, which would make a correct recitation of just the
-   ayah register as "missing a word"). Fixed in `quran_corpus_service.py`
-   by splitting it into its own `basmalah` field, detected robustly via the
-   diacritic-free `simple` text rather than a fragile literal Uthmani
-   string match. **Quran.com's tajweed/tafsir APIs do NOT have this bug**
-   (independently verified) — don't assume it applies everywhere.
+   with the Basmalah). Fixed in `quran_corpus_service.py` by splitting it
+   into its own `basmalah` field. **Quran.com's tajweed/tafsir APIs do NOT
+   have this bug** — don't assume it applies everywhere.
 2. **Whisper `generate()` gotcha**: do not pass `language=`/`task=` kwargs
    to `tarteel-ai/whisper-base-ar-quran`'s `.generate()` — newer
    `transformers` raises "generation config is outdated" against this
-   checkpoint's `generation_config.json`. Calling `generate()` with no
-   language/task args at all works correctly (the checkpoint is Quran-only
-   anyway).
+   checkpoint's `generation_config.json`.
 3. **Tajweed/tafsir API pagination**: `api.quran.com`'s tafsir `by_chapter`
-   endpoint silently paginates at 10 ayahs/page for long surahs (Al-Baqara
-   got truncated to 10/286 ayahs before this was caught). Fix:
-   `per_page=300` query param (covers even the longest surah in one
-   request). The tajweed `uthmani_tajweed` endpoint does NOT paginate —
-   confirmed separately, don't assume the same fix is needed there.
+   endpoint silently paginates at 10 ayahs/page for long surahs. Fix:
+   `per_page=300`. The tajweed `uthmani_tajweed` endpoint does NOT
+   paginate — confirmed separately.
 4. **Tafsir text is shared across grouped ayahs**: Ibn Kathir's commentary
-   is often written once for several consecutive ayahs (e.g. all of Surah
-   112 shares one block). The API returns one entry per ayah but only the
-   *first* ayah of a group has non-empty text; the rest are empty strings.
-   `tafsir_service.py`'s `_build_blocks_for_chapter` tracks this as
-   `(ayah_from, ayah_to)` ranges so every ayah in a group resolves to the
-   shared text, not emptiness.
-5. **Audio format for recitation upload**: the backend decodes audio via
-   `soundfile`/libsndfile, which handles WAV/MP3/FLAC/OGG but NOT
-   AAC/M4A (expo-audio's default recording presets!) and NOT WebM/Opus
-   (what browser `MediaRecorder` and Android's recorder most naturally
-   produce). The frontend's `RECITATION_RECORDING_OPTIONS`
-   (`src/lib/audio-recording-options.ts`) forces WAV/LINEARPCM output on
-   iOS specifically. **Android has no raw-PCM/WAV option in expo-audio's
-   `AndroidOutputFormat` enum at all** — Android recordings will NOT be
-   server-decodable until either a client-side transcode step is added or
-   the backend's accepted formats are extended. This is a known, flagged
-   gap for the Android-parity phase (F10), not an oversight.
+   is often written once for several consecutive ayahs. `tafsir_service.py`'s
+   `_build_blocks_for_chapter` tracks `(ayah_from, ayah_to)` ranges so every
+   ayah in a group resolves to the shared text, not emptiness.
+5. **Audio format for recitation upload**: the backend decodes via
+   `soundfile`/libsndfile — WAV/MP3/FLAC/OGG only, NOT AAC/M4A (expo-audio's
+   default!) and NOT WebM/Opus. `RECITATION_RECORDING_OPTIONS`
+   (`src/lib/audio-recording-options.ts`) forces WAV/LINEARPCM on iOS.
+   **Android has no raw-PCM/WAV option in expo-audio's `AndroidOutputFormat`
+   enum at all** — a known, flagged gap for F10, not an oversight.
 6. **Arabic combining-mark transcription risk**: don't hand-type Arabic
-   literal strings as test expectations (e.g. "احد" vs. the linguistically
-   correct "أحد" — easy to mistype the hamza). Caught this exact mistake
-   twice. Prefer deriving expected values from the real corpus/fixture data
-   directly in the test rather than retyping Arabic by hand.
-7. **Test isolation**: the test suite's DB is a real, *shared, persistent*
-   SQLite file across the whole pytest session (see `tests/conftest.py`) —
-   not reset between tests. Any test creating a `User` needs a unique
-   username/email per invocation (`uuid.uuid4().hex[:8]` suffix pattern
-   used throughout `test_gamification_*`, `test_halaqa_*`, etc.), and any
-   test building a search index must redirect its persistence path to a
-   `tmp_path` fixture, not the real `data/quran/*.pkl` files (a fixture
-   corpus test once clobbered the real production BM25 index this way).
-8. **CRLF line-ending corruption**: editing `app/main.py` and
-   `app/core/database.py` with the Edit tool once converted them from LF to
-   CRLF, producing a noisy whole-file diff. Normalize with a quick Python
-   `.replace(b'\r\n', b'\n')` pass and re-check `git diff --stat` before
-   committing if a diff looks suspiciously large for a small change.
-9. **expo-audio recording presets default to M4A/AAC** — see #5. Also:
-   `expo-av` is fully removed from Expo Go as of SDK 55; always use
-   `expo-audio`.
+   literal strings as test expectations — derive expected values from real
+   corpus/fixture data instead.
+7. **Test isolation**: the test suite's DB is a real, shared, persistent
+   SQLite file across the whole pytest session. Any test creating a `User`
+   needs a unique username/email per invocation; any test building a search
+   index must redirect to a `tmp_path` fixture.
+8. **CRLF line-ending corruption**: editing `app/main.py` /
+   `app/core/database.py` with the Edit tool once converted LF to CRLF.
+   Re-check `git diff --stat` if a diff looks suspiciously large.
+9. **expo-audio recording presets default to M4A/AAC**. `expo-av` is fully
+   removed from Expo Go as of SDK 55; always use `expo-audio`.
 10. **CPU-bound work inside `async def` doesn't yield to the event loop by
     itself.** `check_recitation`'s Whisper transcription and
-    `VoiceSearchService.search`'s FAISS/BM25/rerank work are both plain
-    synchronous calls — being inside an `async def` function does nothing
-    on its own; without an explicit `await asyncio.to_thread(...)`, one
-    slow request blocks every other in-flight request (even unrelated ones
-    like `/health`) for its full duration. Fixed in both places. **Check
-    for this same pattern before adding more synchronous-but-slow backend
-    work** (tajweed/tafsir lookups are cheap enough not to matter; a future
-    heavy call might not be).
+    `VoiceSearchService.search`'s FAISS/BM25/rerank work are plain
+    synchronous calls — without `await asyncio.to_thread(...)`, one slow
+    request blocks every other in-flight request. Fixed in both places.
+    **Check for this pattern before adding more synchronous-but-slow
+    backend work.**
 11. **`create_tables()` was never called from real app startup** — only
-    from test fixtures (`tests/conftest.py`) and the one-off seed script.
-    `app/main.py`'s lifespan now calls it (idempotent, `CREATE TABLE IF NOT
-    EXISTS` semantics, safe on every startup) before initializing services.
-    Before this fix, every table added from Phase 3 onward
-    (`UserStreak`, `MemorizationCard`, `RecitationSession`, `Halaqa`, ...)
-    silently didn't exist in a real (non-test) run of the app.
+    from test fixtures and the seed script. `app/main.py`'s lifespan now
+    calls it (idempotent) before initializing services. Before this fix,
+    every table added from Phase 3 onward silently didn't exist outside
+    tests.
 12. **React Native's classic FormData `{uri, name, type}` file shape
-    doesn't work with Expo SDK 57's `fetch` polyfill at all** — it throws
-    "Unsupported FormDataPart implementation" (the polyfill's
-    `convertFormData.ts` only accepts a real Blob/File-like value with a
-    `.bytes()` method). `src/lib/api-client.ts`'s `apiUpload` now uses
-    `expo-file-system`'s `File#upload()` (`UploadType.MULTIPART`) instead
-    of `fetch` + `FormData` for the recitation-check upload — it bypasses
-    `fetch` entirely for that one call. If any future feature needs another
-    file upload, reuse `apiUpload`, don't reintroduce raw FormData.
+    doesn't work with Expo SDK 57's `fetch` polyfill at all** — throws
+    "Unsupported FormDataPart implementation" (the polyfill only accepts a
+    real Blob/File-like value with a `.bytes()` method). `apiUpload` uses
+    `expo-file-system`'s `File#upload()` instead of `fetch`+`FormData` —
+    bypasses `fetch` entirely. Reuse `apiUpload` for any future upload,
+    don't reintroduce raw FormData.
+13. **`NativeTabs` (the new `expo-router/unstable-native-tabs` API) does
+    not provide a stack for its tab routes.** A tab that needs to push a
+    second screen on top of it (anything beyond the tab's own root) needs
+    its **own nested `_layout.tsx` with a `<Stack>`** — confirmed against
+    real Expo docs, not assumed. This is why `Home` and `Profile` moved
+    from flat files (`src/app/index.tsx`, `src/app/profile.tsx`) into
+    folders (`src/app/home/`, `src/app/profile/`) this session, each with
+    its own `_layout.tsx`. **A bare root route (`src/app/index.tsx`) must
+    still exist as a `<Redirect href="/home" />`** — moving the real Home
+    screen out of that slot without leaving a redirect produces a real
+    "Unmatched Route" crash on cold start (this happened once this
+    session; the fix was the redirect file, not a deeper routing bug).
+14. **On Windows, a Python venv's `Scripts\python.exe` is a small launcher,
+    not a real copy of the interpreter** — the actual process that ends up
+    bound to a port is the *base* interpreter the venv points to (check
+    `pyvenv.cfg`'s `home` field), confirmed via `Get-CimInstance
+    Win32_Process` showing the bound PID's `ExecutablePath` as the base
+    install, not the venv path. **A Windows Firewall rule scoped to the
+    venv's own `python.exe` path silently never matches anything** —
+    this wasted real time earlier in the project's life (HANDOFF's
+    original firewall troubleshooting assumed the venv path was correct).
+    **Fix: use a port-based rule** (`-LocalPort 8000`, no `-Program`
+    clause) instead of a program-path rule — works regardless of which
+    interpreter ends up bound.
+15. **Ngrok's free tier only grants one real public hostname per
+    account.** Trying to tunnel a second local port (Metro's 8081,
+    alongside the backend's 8000) under the same account either fails
+    outright or — worse — silently pools both ports onto the *same*
+    hostname (confirmed: both endpoints returned the identical
+    `public_url`, meaning requests would randomly route to either
+    service). **Don't reach for a second ngrok tunnel to solve a
+    connectivity problem** — the real fix for phone-can't-reach-backend
+    is the direct-LAN + firewall-rule path in §1, not a tunnel.
+16. **Tajweed endpoint's `plain_text` comes from a different upstream
+    source than Phase 1's `text_uthmani`** (Quran.com vs. alquran.cloud).
+    The two Uthmani strings can differ in minor rendering details that
+    would silently misalign a rule span's character offsets if cross-
+    applied — this is flagged directly in `tajweed_service.py`'s own
+    docstring. **Always render the tajweed endpoint's own `plain_text`
+    for its rule spans, never overlay them onto a different ayah-text
+    source.** Separately, the 17 raw rule codes were grouped into 7 color
+    families client-side (`src/constants/tajweed-colors.ts`) rather than
+    given 17 distinct hues — real tajweed mushafs do the same, and 17
+    genuinely-distinguishable colors isn't achievable anyway (validated
+    with the dataviz skill's `validate_palette.js` against this app's own
+    light/dark surfaces, not eyeballed).
+17. **React Compiler's purity rules reject `Math.random()` inside
+    `useMemo`** (`react-hooks/purity` — a memoized value must be
+    idempotent, which a random pick inherently isn't) **and reject
+    `setState` called directly inside a `useEffect` body**
+    (`react-hooks/set-state-in-effect`, unless it's a one-time hydration
+    flag with a justified inline disable, see
+    `src/hooks/use-color-scheme.web.ts`). The correct pattern for "pick
+    something random exactly once when new data arrives" is a **lazy
+    `useState` initializer** (`useState(() => computeOnce(data))`) in a
+    child component that mounts fresh per data load — the one place
+    React's rules explicitly allow one-time impure computation. See
+    `src/app/read/quiz.tsx`'s `QuizBody` for the pattern.
+18. **A CSS `transform` on an SVG element silently overrides (not
+    combines with) an SVG `transform=""` attribute on the same element**,
+    on web specifically. `launch-animation.tsx`'s spin animation once set
+    `style.transform = 'rotate(...)'` on a `<g>` that also had
+    `transform="translate(512 512)"` as an attribute — the translate
+    vanished, collapsing the whole mark into the top-left corner. Fix:
+    bake the translate into the *same* CSS transform string
+    (`translate(512px,512px) rotate(Ndeg)`), never split a translate
+    across the attribute and a CSS override on the same element.
+19. **`react-native-svg`'s `Path#getTotalLength()` isn't guaranteed on
+    every platform** (confirmed: throws "is not a function" on web,
+    works correctly on native). Any stroke-draw animation using it should
+    check `typeof ref.current?.getTotalLength === 'function'` before
+    calling, and degrade gracefully (skip the animation, call the
+    completion callback immediately) rather than crash — see
+    `launch-animation.tsx`'s `tryMeasure`.
+20. **`auth-store.ts`'s `hydrate()` had no error handling** — since
+    `isHydrating` gates the entire app's first render, a thrown
+    `SecureStore` read (guaranteed on web, possible on a real device too)
+    left the app stuck on a permanent blank screen. Fixed with a
+    try/catch that falls back to a logged-out state. **Any store value
+    that gates the root render must never be able to throw its way into
+    a stuck state.**
+21. **A nested `Pressable` inside a `Link`'s own `Pressable` doesn't
+    reliably stop touch propagation on web even with
+    `event.stopPropagation()`** (confirmed: tapping a download badge
+    nested inside a surah row's navigation target still triggered
+    navigation). **Fix structurally, not with stopPropagation**: make the
+    inner interactive element a sibling of the outer `Link`/`Pressable`,
+    never nested inside it — see `src/components/surah-list-item.tsx`.
+22. **`TextInput`'s `onSubmitEditing` didn't reliably fire via a
+    simulated Enter keypress on web** (the "Ask the Quran" search). Added
+    an explicit Search button as the primary trigger rather than relying
+    solely on the keyboard-submit event — also just better UX regardless
+    of the underlying cause.
+23. **The backend had no CORS headers configured at all**
+    (`ALLOWED_ORIGINS` defaulted to `localhost:3000`/`8080`, matching
+    neither Expo's web dev server nor anything else actually used).
+    Without this, the web self-testing method in §3 couldn't make any API
+    call from a real browser context — blocked Claude's own ability to
+    verify things, not just a future web-platform concern. Fixed in
+    `app/main.py`: `allow_origins=["*"]` and `allow_credentials=False`
+    specifically when `settings.DEBUG` is true (the local/demo-scale
+    default); production keeps the explicit origin list with credentials.
+    The two are mutually exclusive per the CORS spec, and this app's auth
+    is a Bearer token header, not a cookie, so dropping credentials in
+    debug mode costs nothing.
 
 ---
 
-## 5. Frontend Roadmap — F0 through F11
-
-Numbered independently from the backend's phases (frontend phases use an
-"F" prefix). **F0 and F1 are shipped.** Everything else is planned, not
-built.
+## 5. Frontend Roadmap — F0 through F7 all SHIPPED, F8-F11 blocked (see §6)
 
 ### F0 — Foundation ✅ SHIPPED
-Project scaffold (Expo Router, TypeScript), design system (color tokens in
-`src/constants/theme.ts`, including an Arabic type scale kept deliberately
-separate from the Latin one — Quran text needs larger size/line-height),
-Arabic font (Noto Naskh Arabic — a real Uthmani-script font like KFGQPC
-would read more authentically but isn't on Google Fonts, flagged as a later
-polish item), TanStack Query + Zustand setup, typed API client
-(`src/lib/api-client.ts`) with auth token injection, auth screens (login/
-register against the backend's existing `/auth` endpoints,
-`expo-secure-store`-backed token persistence), 3-tab nav shell (Home, Read,
-Profile), read-only Mushaf reader (surah list → surah detail via
-`FlashList`, backed by Backend #8).
+Project scaffold, design system (`src/constants/theme.ts`), Arabic font
+(Noto Naskh Arabic), TanStack Query + Zustand, typed API client, auth
+screens, 4-tab nav shell, read-only Mushaf reader.
 
 ### F1 — Voice & Recitation Core ✅ SHIPPED
-4th tab added ("Practice"). Two modes on one screen
-(`src/app/practice.tsx`): no params = "Tasmeea" (recite any fragment, the
-backend transcribes + searches for the matching ayah); `?surah=&ayah=` =
-practice that specific ayah directly (reachable via a "Check my recitation"
-mic button added to every `AyahCard` in the reader). Recording via
-`expo-audio` with the WAV-format fix from §4. Mistakes rendered as colored/
-struck-through inline spans directly on the ayah's own Uthmani text
-(`src/components/mistake-highlighted-text.tsx`) — not a separate list, the
-actual word highlighted in place.
+Tasmeea (recite any fragment, find the ayah) + practice-this-specific-ayah
+mode, both on `src/app/practice.tsx`. Mistakes rendered as colored/
+struck-through inline spans on the ayah's own text.
 
-### F2 — Gamification (not started)
-Streak/hasanat dashboard (animated flame, particle-burst counter on
-earning hasanat), calendar heatmap of activity, global leaderboard screen.
-Plus two genuinely novel pieces from the feature catalog:
-- **"Hifz Garden"**: a tree/garden that visibly grows — new leaves/branches
-  per surah memorized, blooms per completed juz. Replaces a flat progress
-  bar with something that feels like tending something real. No existing
-  Quran app does this.
-- **Shareable ayah cards**: one-tap, auto-generate a beautiful, branded,
-  Instagram-story-sized image from any ayah + translation (optionally +
-  "Day 47 of my streak"). The single highest-leverage, lowest-effort growth
-  feature available — every competitor gates this behind manual
-  screenshotting. Needs an image-generation approach client-side (e.g.
-  `react-native-view-shot` to snapshot a styled component, or a
-  canvas-based renderer) — not yet researched/chosen.
+### F2 — Gamification ✅ SHIPPED
+- Real streak/hasanat dashboard on Home (`src/app/home/index.tsx`),
+  backed by Phase 3 + this session's new `/gamification/history` endpoint
+- A genuine calendar heatmap (`src/components/activity-heatmap.tsx`) —
+  real per-day data, not invented; this needed the backend extension
+  above since `UserStreak` alone only tracks current/longest streak
+- Global leaderboard (`src/app/home/leaderboard.tsx`)
+- **Shareable ayah cards** (`src/components/share-ayah-button.tsx` +
+  `shareable-ayah-card.tsx`): one-tap branded image (the Qalam mark +
+  wordmark, verified visually) via `react-native-view-shot` +
+  `expo-sharing`, wired into both the Read screen's `AyahCard` and
+  Practice's result card
+- **Hifz Garden** (the tree/garden visualization) is the one original F2
+  idea **not** built — it's a visual layer over memorization progress,
+  and makes more sense now that F3's real Hifz data exists; a good
+  candidate for the next session rather than something blocked on
+  anything external.
 
-### F3 — Memorization (Hifz) UI (not started)
-Swipe-to-grade SRS review cards (Phase 4's backend), auto-graded by default
-when a review is done via a live recitation check rather than manual
-self-rating (mistake count → SM-2 quality is already how the backend API
-works — the UI should default to this path). **Mutashabihat confusion
-quiz**: side-by-side "which of these two ayahs is actually 2:255 vs. its
-near-twin" drills, generated from Phase 4's `similar` endpoint. Per-ayah
-weak-point heatmap once Backend #9 exists.
+### F3 — Memorization (Hifz) UI ✅ SHIPPED
+- "Add to Hifz" button on every ayah in Read
+- Hifz Review screen (`src/app/profile/hifz.tsx`): Again/Hard/Good/Easy
+  grading against the real SM-2 backend, verified end-to-end (added →
+  appeared in due queue → grading correctly advanced the interval)
+- Mutashabihat confusion quiz (`src/app/read/quiz.tsx`): "which of these
+  is really X:Y", a random distractor from the backend's `/similar`
+  endpoint — see §4 item 17 for a real React Compiler purity bug this
+  surfaced and how it was fixed
 
-### F4 — Tajweed-Colored Reader + Tajweed Coach (not started)
-Tap a tajweed-colored letter in the Mushaf reader → popover with the rule
-name/description (Phase 5's data, already structured for exactly this).
-**Tajweed Coach**: once there's enough recitation-check history, a
-dashboard surfacing real personalized patterns ("you most often miss
-qalqalah on ق") — needs Backend #9 (mistake-pattern aggregation; doesn't
-exist yet, the raw `MistakeLog` data it would aggregate already does).
+### F4 — Tajweed-Colored Reader ✅ SHIPPED (Tajweed Coach still backend-#9-gated)
+Tap-to-reveal tajweed coloring on every ayah in Read
+(`src/components/tajweed-text.tsx`), 7 color families validated for
+colorblind-safety against the app's real surfaces (see §4 item 16).
+Tapping a colored letter shows its rule name/description via `Alert`.
+The personalized "Tajweed Coach" dashboard (patterns like "you often miss
+qalqalah") still needs Backend #9, not built.
 
-### F5 — Tafsir & "Ask the Quran" (not started)
-"Explain this ayah" panel (direct Phase 7 lookup) + a free-text search
-screen styled as a focused Q&A UI — **explicitly retrieval, not a chat
-bot**, and the UI should say so (cite the real Ibn Kathir passage it
-found). This is a deliberate, documented deviation from the original
-roadmap sketch, which suggested routing through the backend's older
-`hybrid_ai_service.py`/`simple_ai_service.py` — those were read in full and
-found to be built on largely-retired free Hugging Face conversational
-model endpoints with keyword-template fallbacks, not a solid foundation.
-Don't revisit that decision without re-reading why.
+### F5 — Tafsir & "Ask the Quran" ✅ SHIPPED
+"Explain" button on every ayah → real Ibn Kathir commentary
+(`src/app/read/tafsir.tsx`). A dedicated search screen
+(`src/app/home/ask.tsx`) explicitly framed as retrieval, not a chatbot —
+this remains the deliberate, documented stance from the original roadmap
+sketch (the backend's older `hybrid_ai_service.py`/`simple_ai_service.py`
+were read in full and found to be built on largely-retired free endpoints,
+not a solid foundation — don't revisit without re-reading why).
 
-### F6 — Halaqa/Teacher Mode (not started)
-Teacher dashboard: roster, per-student stats, drill into full mistake
-detail per session (Phase 6's data, already there). Assign homework once
-Backend #10 exists. "Listen in" live mode during a student's recitation,
-reusing the backend's existing WebSocket infra (`app/websocket/`) rather
-than inventing a new transport — the one place this app needs true
-realtime.
+### F6 — Halaqa/Teacher Mode ✅ SHIPPED (assignments still backend-#10-gated)
+Create/join a halaqa, teacher roster (`src/app/profile/halaqa-roster.tsx`)
+with per-student stats, drill into full session/mistake detail
+(`src/app/profile/halaqa-student.tsx`). Verified end-to-end: created a
+real halaqa as `demo`, joined as `demo_tester`, confirmed the roster.
+Assigning homework (needs Backend #10) and "listen in" live mode (needs
+the backend's WebSocket infra, a genuinely separate real-time undertaking)
+are the two original F6 pieces still deferred.
 
-### F7 — Offline Packs (not started)
-Download a surah/juz "pack" (text + audio + tajweed data) for offline
-reading/listening/browsing — everything involved is static data already
-served by existing endpoints, this is purely a client-side caching/
-download-manager problem. **Offline recitation-check is explicitly NOT
-attempted** — would need an on-device ASR model (e.g. CoreML-converted
-Whisper-tiny), a real accuracy/latency trade-off against the server-side
-model already validated in Phase 2. Flagged as a distant research stretch,
-not promised to the user as a real roadmap item.
+### F7 — Offline Packs ✅ SHIPPED (text-only, see why below)
+Download a surah for offline reading (`src/lib/offline-packs.ts` +
+download badges in `src/components/surah-list-item.tsx`). **Deliberately
+text-only**, not "text + audio" as the original roadmap sketch
+described — confirmed by reading every backend endpoint that **no
+reciter-audio-serving endpoint exists at all**; an "includes audio" pack
+would have faked a capability the backend doesn't have. Tajweed
+annotation is also left out of a pack (one request per ayah for a
+286-ayah surah is a lot of round-trips for a supplementary feature) — a
+reasonable fast-follow if offline tajweed is wanted. Has no web
+implementation (confirmed: `expo-file-system` warns and no-ops on web,
+doesn't crash) — this only matters for the self-testing method in §3, not
+for the real iOS target, where this API is already proven working twice
+over (recitation upload, share-card capture).
 
-### F8 — OS-Native Integration (not started, iOS-first)
-Requires moving from Expo Go to an EAS "development build" for the first
-time (still built in Expo's cloud, no Mac needed, but no longer runnable
-inside plain Expo Go). Verified against the real Oct-2026 Expo ecosystem:
-- **Home screen widget**: streak + due SRS reviews + ayah of the day, via
-  Expo's official `expo-widgets` (alpha as of this writing — re-check its
-  maturity before committing to it) — React-component widgets, no separate
-  Xcode target needed.
-- **Live Activity / Dynamic Island**: an active recitation session shown
-  live (mistake count ticking) on the Lock Screen/Dynamic Island. Either
-  `expo-widgets`' built-in Live Activities support, or
-  `react-native-live-activity-kit` as the actively-maintained standalone
-  fallback (note: `expo-live-activity` specifically was archived/deprecated
-  as of mid-2026 — don't use it).
-- **Siri / App Intents / Shortcuts**: "Hey Siri, check my Quran streak" —
-  via Expo's official `expo-app-intents` (new as of SDK 58), Swift defined
-  through a config plugin + an "inline modules" experiment, no full native
-  eject required.
-- Android equivalents (widgets, notifications) ship in F10, not here —
-  Android has no Live Activities/App Intents analogue, that's a platform
-  reality, not a gap to fill.
-
-### F9 — Apple Watch Companion (stretch, not started)
-Tap-to-mark-read + streak glance + haptic dhikr counter. **Real hard
-limitation, confirmed via research**: React Native does not run on
-watchOS at all. The watch target must be actual hand-written Swift/
-SwiftUI, scaffolded via Expo Apple Targets/`expo-watch` (keeps it inside
-the Expo-managed project without a full eject) and bridged to the phone
-app over WatchConnectivity. This is the one item in the whole catalog
-where "just write the code" isn't enough without someone who can review
-real Swift. Flagged honestly as later/higher-effort, same treatment the
-backend gave acoustic tajweed scoring and real anti-cheat — don't attempt
-to fake a shortcut here.
-
-### F10 — Android Parity Pass + Play Store Submission (not started)
-By this point the app has technically been running on Android the whole
-time (same RN codebase) — this phase is dedicated Android-specific QA,
-real-device testing, the WAV-recording-format gap from §4 point 5, tab bar
-icons (F0 only built iOS SF Symbol icons, Android needs real drawable
-resources — not guessed at, deferred here on purpose), and the Play Store
-listing itself. Needs Backend #11 (friends), #12 (push), #13 (reading
-plans) as they come up in this phase.
-
-### F11 — Web Export (not started)
-Expo's web target — the "and others" platform from the original ask,
-close to free given everything above was built RN-first with web export
-in mind from the start (`react-native-web` is already in F0's
-dependencies).
+### Also shipped this session, from the feature catalog (§6) rather than the numbered roadmap:
+- **Hands-free practice session** (`src/app/practice.tsx`): tap to record
+  each ayah, then everything else is automated — the result is spoken
+  aloud via `expo-speech` and the session auto-advances to the next ayah,
+  so a reciter's eyes never have to leave the mushaf page. **Honestly
+  scoped**: true zero-tap continuous recording would need voice-activity
+  detection (silence-based auto-segmentation), a genuinely hard problem
+  this doesn't attempt — this is a real, working "low-touch" version, not
+  a faked full version. Verified the state machine (start/end session,
+  UI transitions) via the web harness; the actual record→speak→auto-advance
+  loop with a real recitation couldn't be exercised without a real
+  microphone, so give this one particular attention on the first real
+  on-device pass.
 
 ---
 
-## 6. The Bigger Feature Catalog (ideas beyond the numbered phases)
+## 6. What's genuinely next — and what's blocked on something only the user can do
 
-These came out of the "think of features that don't even exist yet"
-brief. Some are folded into the phases above; the rest are genuinely
-unscheduled but worth remembering so a future session doesn't have to
-re-brainstorm from zero:
+**Not a backlog in the usual sense** — everything in §5 is done. What's
+left falls into two different buckets, and it matters which:
+
+### Buildable now, no external blocker (good candidates for the next session)
+- **Hifz Garden** (§5, F2) — a tree/garden visualization over real
+  memorization progress; the data to drive it now exists.
+- **Backend #9 (mistake-pattern analytics)** → unlocks the "Tajweed
+  Coach" personalization layer on top of the already-shipped F4 tajweed
+  coloring.
+- **Backend #10 (assignments)** → unlocks the one remaining piece of F6.
+- **Offline tajweed data** in the F7 download pack (currently text-only
+  by choice, not blocker — see F7 above).
+- **A full on-device confirmation pass** of everything in §5 — this is
+  less "a feature to build" and more the single most valuable next thing
+  to actually do, since nothing past F1 has been touched by a real finger
+  on a real screen yet.
+
+### Genuinely blocked — needs the user, not more Claude Code time
+- **F8 (OS-native integration: widgets, Live Activity, Siri shortcuts)**
+  — requires an **EAS development build** (`eas build --profile
+  development`), the first point in this whole project where Expo Go
+  stops being enough. Still no Mac needed (EAS builds in Expo's cloud),
+  but the user needs to actually run the build and install it — Claude
+  Code can write all the code but can't trigger/install an EAS build on
+  the user's device.
+- **F9 (Apple Watch companion)** — watchOS doesn't run React Native at
+  all; the watch target needs **actual hand-written Swift/SwiftUI**. This
+  is the one item in the whole project where "just write the code" isn't
+  enough without someone who can review real Swift.
+- **F10 (Android parity + Play Store)** — needs a **real Android device**
+  for the WAV-recording-format gap (§4 item 5) to even be diagnosable,
+  plus Backend #11/#12/#13 (friends, push, reading plans), none built yet.
+- **F11 (Web export, for real)** — the self-testing method in §3 has been
+  informally exercising the web target all session, which surfaced real
+  gaps a genuine web launch would need to close: `expo-secure-store` has
+  no web auth-token persistence at all (falls back to logged-out every
+  reload), `expo-file-system`'s File API has no web implementation
+  (offline packs and recitation upload wouldn't work on web as shipped),
+  and the CORS fix in §4 item 23 is deliberately debug-mode-only — a real
+  web production deploy needs an explicit origin allowlist, not a
+  wildcard. None of this is a reason not to pursue F11, just the honest
+  list of what it would actually need to not be a half-built web
+  experience.
+- **Camera-to-ayah lookup** (§7 below, feature catalog) — needs
+  `react-native-vision-camera`, a native module not included in Expo Go;
+  needs a dev build same as F8.
+- **Multiple qiraat, word-by-word tap-to-translate, multi-reciter audio
+  library** (§7 below) — each needs new corpus data the backend doesn't
+  have yet, not a frontend blocker but a backend research/ingestion task
+  nobody has started.
+
+---
+
+## 7. The Bigger Feature Catalog (ideas beyond the numbered phases)
+
+Updated this session — hands-free mode moved to "shipped" (§5). What's
+left here:
 
 - **Camera-to-ayah lookup**: point the camera at a printed mushaf page,
-  on-device OCR (`react-native-vision-camera` + ML Kit/Vision framework —
-  confirmed to handle Arabic script) extracts the text, feeds it into the
-  *same* Phase 1 voice-search engine as a text query instead of an ASR
-  transcript. Nobody else does this. Not yet scheduled into a specific F
-  phase — candidate for F4 or a new phase alongside it.
-- **Hands-free continuous practice mode**: mic stays open across an entire
-  session, auto-advances ayah-by-ayah as each is correctly recited, reads
-  mistakes aloud via TTS instead of requiring the user to look at the
-  screen. Built for memorization drilling without holding the phone. Not
-  in Tarteel or Quranly today. Natural extension of F1/F3.
-- **Family/kids mode**: simplified scoring, parent dashboard. Explicitly
-  deferred on the backend side too (Phase 6's halaqa teacher/student
-  relational shape covers the exact same data model a parent/child
-  relationship needs — the only new part is a simplified, more playful
-  kid-facing UI, a frontend-only concern).
-- Multiple qiraat (recitation styles: Hafs, Warsh, ...) — rare in consumer
-  apps, would differentiate hard, needs new corpus ingestion research
-  (not yet attempted — unclear if a reliable open API source exists the
-  way alquran.cloud/quran.com covered Hafs).
-- Word-by-word tap-to-translate in the reader — needs word-by-word corpus
-  data not yet ingested (Phase 1's corpus is ayah-level only). Same
-  alquran.cloud/quran.com API family likely has this; not yet verified.
-- Multi-reciter audio library with waveform-aligned "listen & compare"
-  against the user's own recitation.
+  on-device OCR (`react-native-vision-camera` + ML Kit/Vision framework)
+  extracts the text, feeds it into the same Phase 1 voice-search engine.
+  Blocked on a dev build (see §6).
+- **Family/kids mode**: simplified scoring, parent dashboard. Backend
+  side explicitly deferred too — Phase 6's halaqa teacher/student shape
+  already covers the data model a parent/child relationship needs; the
+  only new part is a simplified, more playful kid-facing UI.
+- Multiple qiraat (recitation styles: Hafs, Warsh, ...) — needs new
+  corpus ingestion research, not yet attempted.
+- Word-by-word tap-to-translate — needs word-by-word corpus data not yet
+  ingested (current corpus is ayah-level only).
+- Multi-reciter audio library with waveform-aligned "listen & compare" —
+  needs both new audio-serving infra and a corpus source, neither started.
 
 **Explicitly rejected / out of scope, and why** (don't re-propose without
 new information):
 - Monetization/subscriptions — never asked for, deliberately not designed
-  in, to avoid scope creep on an already-massive roadmap. If ever wanted,
-  RevenueCat is the standard RN choice, flagged here only as a pointer.
-- Ads — contrary to the spirit of an Islamic education app; not considered.
+  in. RevenueCat would be the standard RN choice if ever wanted.
+- Ads — contrary to the spirit of an Islamic education app.
 
 ---
 
-## 7. How a New Session Should Start
+## 8. How a New Session Should Start
 
 1. Read this whole file.
-2. Check whether the backend is already running (`curl http://localhost:8000/health`
-   from a shell with access to this machine) and whether the ngrok tunnel
-   in `IslamQA-app/.env` is still alive. If not, restart both per §1.
-3. If the user says "continue the plan," the next concrete action is:
-   **actually run the app on the iPhone via Expo Go and confirm F0+F1 work
-   end-to-end for real** (never yet done) — browse the Quran, log in/
-   register, record a recitation and see mistakes highlighted. Fix whatever
-   breaks on a real device (this is the first time anything in this project
-   has run outside a bundler/typecheck dry-run).
-4. Only after that real-device confirmation, move to F2 (gamification UI),
-   following the same discipline as every phase before it: plan → verify →
-   build → test → commit → push.
-5. For backend additions (#9-13), use the `Agent`/plan-mode workflow the
-   same way Phases 1-8 were built: research the real need, write a short
-   plan, get it approved, implement, run the *full* test suite (`pytest
-   tests/ -q` from `IslamQA/`, currently 173 tests, should stay green),
-   commit, push.
+2. Check the backend is running (`curl http://localhost:8000/health`) and
+   re-verify the current LAN IP matches `IslamQA-app/.env` — **don't
+   trust the IP written in §1**, the network has changed multiple times
+   already and will again. If backend or Metro aren't running, start them
+   per §1's resume block.
+3. If the user wants to test on the real device: confirm phone and PC are
+   on the same WiFi, confirm the port-8000 firewall rule exists (§1), and
+   do the **full on-device walkthrough** that's never actually happened
+   yet — every feature in §5, not just F0/F1. Expect to find and fix real
+   bugs the web self-testing method in §3 couldn't catch (its own known
+   limitations are listed there) — that's expected, not a sign something
+   was done wrong.
+4. If the user wants to keep building: start from §6's "buildable now"
+   list, in whatever order they prefer — none of it is blocked. Use the
+   same discipline as every phase before it: verify the real API/library
+   behavior first, plan, build, **actually test it** (§3's method, plus
+   the real pytest suite for any backend change — currently 185 tests,
+   should stay green), commit when asked.
+5. If the user wants F8-F11 or the camera feature: read §6's "genuinely
+   blocked" list first and have the conversation about what the user
+   needs to do (run an EAS build, get on an Android device, etc.) before
+   writing code that can't be tested yet.
