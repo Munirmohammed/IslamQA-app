@@ -41,7 +41,7 @@ export default function SurahDetailScreen() {
         options={{
           title: surah?.surah_name_en ?? '',
           headerRight: () => (
-            <Link href={{ pathname: '/read/quiz', params: { surah: surahNumber } }} asChild>
+            <Link href={{ pathname: '/quran/quiz', params: { surah: surahNumber } }} asChild>
               <Pressable hitSlop={8}>
                 {({ pressed }) => (
                   <ThemedText type="small" themeColor="primary" style={{ opacity: pressed ? 0.6 : 1 }}>

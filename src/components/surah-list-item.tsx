@@ -19,7 +19,7 @@ export function SurahListItem({ surah }: SurahListItemProps) {
 
   return (
     <ThemedView type="backgroundElement" style={styles.container}>
-      <Link href={`/read/${surah.surah_number}`} asChild>
+      <Link href={`/quran/${surah.surah_number}`} asChild>
         <Pressable style={styles.navArea}>
           {({ pressed }) => (
             <View

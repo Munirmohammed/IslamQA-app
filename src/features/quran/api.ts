@@ -63,7 +63,7 @@ export function useDownloadSurah() {
  * query, since "get another random question" is an explicit action, not
  * a cacheable resource. Pass a surah number to scope it, or undefined for
  * anywhere in the Quran. Powers the Mutashabihat quiz's question source
- * (see src/app/read/quiz.tsx) so the quiz doesn't reveal its own answer. */
+ * (see src/app/quran/quiz.tsx) so the quiz doesn't reveal its own answer. */
 export function useRandomAyah() {
   return useMutation({
     mutationFn: (surah?: number) =>

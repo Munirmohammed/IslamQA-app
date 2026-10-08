@@ -61,7 +61,7 @@ export default function HomeScreen() {
 
         {me && history && <ActivityHeatmap days={history.days} />}
 
-        <Link href="/read" asChild>
+        <Link href="/quran" asChild>
           <Pressable>
             {({ pressed }) => (
               <ThemedView
@@ -75,28 +75,8 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
-        <Link href="/home/ask" asChild>
-          <Pressable>
-            {({ pressed }) => (
-              <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>
-                Ask the Quran →
-              </ThemedText>
-            )}
-          </Pressable>
-        </Link>
-
-        <Link href="/read/quiz" asChild>
-          <Pressable>
-            {({ pressed }) => (
-              <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>
-                Random Quiz →
-              </ThemedText>
-            )}
-          </Pressable>
-        </Link>
-
         {me && (
-          <Link href="/home/leaderboard" asChild>
+          <Link href="/community/leaderboard" asChild>
             <Pressable>
               {({ pressed }) => (
                 <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>

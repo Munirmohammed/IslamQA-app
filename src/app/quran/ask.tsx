@@ -124,7 +124,7 @@ function ResultCard({ result }: { result: TafsirSearchResult }) {
     <ThemedView type="backgroundElement" style={styles.card}>
       <Link
         href={{
-          pathname: '/read/tafsir',
+          pathname: '/quran/tafsir',
           params: { surah: result.surah_number, ayah: result.ayah_from, surahNameEn: '' },
         }}
         asChild>

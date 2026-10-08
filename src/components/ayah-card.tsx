@@ -43,7 +43,7 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
         </View>
 
         <Link
-          href={`/practice?surah=${ayah.surah_number}&ayah=${ayah.ayah_number}&surahNameEn=${encodeURIComponent(surahNameEn)}`}
+          href={`/quran/practice?surah=${ayah.surah_number}&ayah=${ayah.ayah_number}&surahNameEn=${encodeURIComponent(surahNameEn)}`}
           asChild>
           <Pressable hitSlop={8}>
             {({ pressed }) => (
@@ -105,7 +105,7 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
 
         <Link
           href={{
-            pathname: '/read/tafsir',
+            pathname: '/quran/tafsir',
             params: { surah: ayah.surah_number, ayah: ayah.ayah_number, surahNameEn },
           }}
           asChild>

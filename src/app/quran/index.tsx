@@ -1,5 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
-import { StyleSheet } from 'react-native';
+import { Link, type Href } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SurahListItem } from '@/components/surah-list-item';
@@ -8,12 +9,34 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useSurahs } from '@/features/quran/api';
 
+function QuickAction({ href, label }: { href: Href; label: string }) {
+  return (
+    <Link href={href} asChild>
+      <Pressable style={{ flex: 1 }}>
+        {({ pressed }) => (
+          <ThemedView type="primaryMuted" style={[styles.quickAction, pressed && styles.quickActionPressed]}>
+            <ThemedText type="smallBold" themeColor="primary">
+              {label}
+            </ThemedText>
+          </ThemedView>
+        )}
+      </Pressable>
+    </Link>
+  );
+}
+
 export default function SurahListScreen() {
   const { data: surahs, isLoading, error } = useSurahs();
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        <View style={styles.quickActions}>
+          <QuickAction href="/quran/practice" label="🎙 Tasmeea" />
+          <QuickAction href="/quran/ask" label="Ask the Quran" />
+          <QuickAction href="/quran/quiz" label="Random Quiz" />
+        </View>
+
         {isLoading && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
             Loading the Quran…
@@ -59,5 +82,19 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: Spacing.two,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
+  },
+  quickAction: {
+    borderRadius: Spacing.three,
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+  },
+  quickActionPressed: {
+    opacity: 0.7,
   },
 });

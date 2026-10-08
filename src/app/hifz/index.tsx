@@ -29,11 +29,30 @@ export default function HifzReviewScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        <Link href="/profile/garden" style={styles.gardenLink}>
-          <ThemedText type="small" themeColor="primary">
-            🌱 View your Hifz Garden
-          </ThemedText>
-        </Link>
+        <ThemedText type="title" style={styles.title}>
+          Hifz
+        </ThemedText>
+
+        <View style={styles.hubLinks}>
+          <Link href="/hifz/garden" asChild>
+            <Pressable style={styles.hubLink}>
+              {({ pressed }) => (
+                <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
+                  🌱 Garden
+                </ThemedText>
+              )}
+            </Pressable>
+          </Link>
+          <Link href="/hifz/coach" asChild>
+            <Pressable style={styles.hubLink}>
+              {({ pressed }) => (
+                <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
+                  Tajweed Coach
+                </ThemedText>
+              )}
+            </Pressable>
+          </Link>
+        </View>
 
         {isLoading && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
@@ -50,7 +69,7 @@ export default function HifzReviewScreen() {
         {dueCards && dueCards.length === 0 && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
             All caught up -- nothing due for review right now. Add an ayah to your
-            memorization plan from the Read tab.
+            memorization plan from the Quran tab.
           </ThemedText>
         )}
 
@@ -125,15 +144,26 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.four,
     gap: Spacing.four,
   },
+  title: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  hubLinks: {
+    flexDirection: 'row',
+    gap: Spacing.four,
+  },
+  hubLink: {
+    flex: 1,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
   message: {
     textAlign: 'center',
     marginTop: Spacing.six,
     paddingHorizontal: Spacing.four,
   },
   counter: {
-    textAlign: 'center',
-  },
-  gardenLink: {
     textAlign: 'center',
   },
   card: {

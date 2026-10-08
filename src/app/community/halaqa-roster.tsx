@@ -19,7 +19,7 @@ export default function HalaqaRosterScreen() {
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <Link
           href={{
-            pathname: '/profile/halaqa-leaderboard',
+            pathname: '/community/halaqa-leaderboard',
             params: { halaqaId: params.halaqaId, halaqaName: params.halaqaName },
           }}
           style={styles.leaderboardLink}>
@@ -62,7 +62,7 @@ function StudentRow({ halaqaId, student }: { halaqaId: string; student: StudentS
   return (
     <Link
       href={{
-        pathname: '/profile/halaqa-student',
+        pathname: '/community/halaqa-student',
         params: { halaqaId, studentId: student.student_id, username: student.username },
       }}
       asChild>

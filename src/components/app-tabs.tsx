@@ -21,18 +21,23 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon sf="house.fill" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="read">
-        <NativeTabs.Trigger.Label>Read</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="quran">
+        <NativeTabs.Trigger.Label>Quran</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="book.fill" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="practice">
-        <NativeTabs.Trigger.Label>Practice</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="mic.fill" />
+      <NativeTabs.Trigger name="hifz">
+        <NativeTabs.Trigger.Label>Hifz</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="leaf.fill" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="community">
+        <NativeTabs.Trigger.Label>Community</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.3.fill" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="more">
+        <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.fill" />
       </NativeTabs.Trigger>
     </NativeTabs>

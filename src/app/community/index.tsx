@@ -18,6 +18,20 @@ export default function HalaqaScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <View style={styles.content}>
+          <ThemedText type="title" style={styles.title}>
+            Community
+          </ThemedText>
+
+          <Link href="/community/leaderboard" asChild>
+            <Pressable>
+              {({ pressed }) => (
+                <ThemedText type="link" themeColor="primary" style={pressed && styles.rowPressed}>
+                  Global leaderboard →
+                </ThemedText>
+              )}
+            </Pressable>
+          </Link>
+
           {isLoading && (
             <ThemedText themeColor="textSecondary" style={styles.message}>
               Loading your circles…
@@ -59,7 +73,7 @@ export default function HalaqaScreen() {
 function TeachingRow({ halaqa }: { halaqa: Halaqa }) {
   return (
     <Link
-      href={{ pathname: '/profile/halaqa-roster', params: { halaqaId: halaqa.id, halaqaName: halaqa.name } }}
+      href={{ pathname: '/community/halaqa-roster', params: { halaqaId: halaqa.id, halaqaName: halaqa.name } }}
       asChild>
       <Pressable>
         {({ pressed }) => (
@@ -79,7 +93,7 @@ function StudyingRow({ halaqa }: { halaqa: Halaqa }) {
   return (
     <Link
       href={{
-        pathname: '/profile/halaqa-leaderboard',
+        pathname: '/community/halaqa-leaderboard',
         params: { halaqaId: halaqa.id, halaqaName: halaqa.name },
       }}
       asChild>
@@ -192,6 +206,10 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.four,
     gap: Spacing.four,
+  },
+  title: {
+    fontSize: 32,
+    lineHeight: 38,
   },
   message: {
     textAlign: 'center',
