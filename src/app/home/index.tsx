@@ -3,16 +3,19 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityHeatmap } from '@/components/activity-heatmap';
+import { KhatmahProgressCard } from '@/components/khatmah-progress-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useMe } from '@/features/auth/api';
 import { useHistory, useStreak } from '@/features/gamification/api';
+import { useKhatmahProgress } from '@/features/khatmah/api';
 
 export default function HomeScreen() {
   const { data: me } = useMe();
   const { data: streak } = useStreak();
   const { data: history } = useHistory(30);
+  const { data: khatmah } = useKhatmahProgress();
 
   return (
     <ThemedView style={styles.container}>
@@ -54,6 +57,8 @@ export default function HomeScreen() {
             </ThemedView>
           ))}
 
+        {me && khatmah && <KhatmahProgressCard progress={khatmah} />}
+
         {me && history && <ActivityHeatmap days={history.days} />}
 
         <Link href="/read" asChild>
@@ -92,9 +97,6 @@ export default function HomeScreen() {
           </Link>
         )}
 
-        <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-          Memorization reviews and tajweed coloring are coming in the next phases.
-        </ThemedText>
       </SafeAreaView>
     </ThemedView>
   );
@@ -156,8 +158,5 @@ const styles = StyleSheet.create({
   streakNumber: {
     fontSize: 32,
     lineHeight: 36,
-  },
-  note: {
-    marginTop: Spacing.four,
   },
 });

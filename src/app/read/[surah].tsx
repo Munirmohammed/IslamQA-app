@@ -1,5 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,12 +8,32 @@ import { AyahCard } from '@/components/ayah-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function SurahDetailScreen() {
   const { surah: surahParam } = useLocalSearchParams<{ surah: string }>();
   const surahNumber = Number(surahParam);
   const { data: surah, isLoading, error } = useSurah(surahNumber);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const markAyahsRead = useMarkAyahsRead();
+
+  // Opening a surah's reading screen counts as reading it, toward khatmah
+  // progress -- the same coarse-grained "a concrete action happened" signal
+  // the rest of the app uses, not scroll-accurate tracking.
+  useEffect(() => {
+    if (accessToken && surah && surah.ayahs.length > 0) {
+      markAyahsRead.mutate({
+        surah: surahNumber,
+        ayah_from: surah.ayahs[0].ayah_number,
+        ayah_to: surah.ayahs[surah.ayahs.length - 1].ayah_number,
+      });
+    }
+    // markAyahsRead intentionally excluded: it's a stable mutate function,
+    // not a value this effect should re-fire on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, surah, surahNumber]);
 
   return (
     <ThemedView style={styles.container}>

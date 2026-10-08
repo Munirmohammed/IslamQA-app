@@ -6,6 +6,7 @@ export default function HomeLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="leaderboard" options={{ title: 'Leaderboard' }} />
       <Stack.Screen name="ask" options={{ title: 'Ask the Quran' }} />
+      <Stack.Screen name="khatmah" options={{ title: 'Khatmah' }} />
     </Stack>
   );
 }
