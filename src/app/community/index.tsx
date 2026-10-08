@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -16,7 +18,7 @@ export default function HalaqaScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <ThemedText type="title" style={styles.title}>
             Community
@@ -32,17 +34,9 @@ export default function HalaqaScreen() {
             </Pressable>
           </Link>
 
-          {isLoading && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Loading your circles…
-            </ThemedText>
-          )}
+          {isLoading && <Skeleton height={80} borderRadius={Spacing.three} />}
 
-          {error && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Couldn&apos;t load your halaqas.
-            </ThemedText>
-          )}
+          {error && <EmptyState icon="alert-circle-outline" message="Couldn't load your halaqas." />}
 
           {data && data.teaching.length > 0 && (
             <View style={styles.section}>
@@ -204,16 +198,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.six,
+    paddingBottom: Spacing.four,
     gap: Spacing.four,
   },
   title: {
     fontSize: 32,
     lineHeight: 38,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
   },
   section: {
     gap: Spacing.two,

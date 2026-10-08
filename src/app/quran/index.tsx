@@ -3,6 +3,8 @@ import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { SurahListItem } from '@/components/surah-list-item';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -38,16 +40,18 @@ export default function SurahListScreen() {
         </View>
 
         {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading the Quran…
-          </ThemedText>
+          <View style={styles.skeletonList}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} height={64} borderRadius={Spacing.three} />
+            ))}
+          </View>
         )}
 
         {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t reach the server. Check that the backend and tunnel are running, and
-            that EXPO_PUBLIC_API_URL is set.
-          </ThemedText>
+          <EmptyState
+            icon="cloud-offline-outline"
+            message="Couldn't reach the server. Check that the backend and tunnel are running, and that EXPO_PUBLIC_API_URL is set."
+          />
         )}
 
         {surahs && (
@@ -71,17 +75,17 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
-  },
   listContent: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,
   },
   separator: {
     height: Spacing.two,
+  },
+  skeletonList: {
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
   },
   quickActions: {
     flexDirection: 'row',

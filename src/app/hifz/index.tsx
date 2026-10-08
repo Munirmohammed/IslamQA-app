@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ArabicText } from '@/components/arabic-text';
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -28,7 +30,7 @@ export default function HifzReviewScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
           Hifz
         </ThemedText>
@@ -54,23 +56,15 @@ export default function HifzReviewScreen() {
           </Link>
         </View>
 
-        {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading your review queue…
-          </ThemedText>
-        )}
+        {isLoading && <Skeleton height={120} borderRadius={Spacing.three} />}
 
-        {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load your review queue.
-          </ThemedText>
-        )}
+        {error && <EmptyState icon="alert-circle-outline" message="Couldn't load your review queue." />}
 
         {dueCards && dueCards.length === 0 && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            All caught up -- nothing due for review right now. Add an ayah to your
-            memorization plan from the Quran tab.
-          </ThemedText>
+          <EmptyState
+            icon="checkmark-circle-outline"
+            message="All caught up -- nothing due for review right now. Add an ayah to your memorization plan from the Quran tab."
+          />
         )}
 
         {currentCard && (
@@ -141,7 +135,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
+    paddingTop: Spacing.six,
     gap: Spacing.four,
   },
   title: {
@@ -157,11 +151,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
   },
   counter: {
     textAlign: 'center',
