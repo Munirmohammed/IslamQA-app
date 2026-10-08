@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -101,6 +102,30 @@ function ProfileDetails() {
     <ThemedView type="backgroundElement" style={styles.card}>
       <ThemedText type="smallBold">{me?.username}</ThemedText>
       <ThemedText themeColor="textSecondary">{me?.email}</ThemedText>
+
+      <Link href="/profile/hifz" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="primaryMuted" style={[styles.submitButton, pressed && styles.pressed]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                Hifz Review
+              </ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+
+      <Link href="/profile/halaqa" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="primaryMuted" style={[styles.submitButton, pressed && styles.pressed]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                Halaqa
+              </ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
 
       <Pressable onPress={() => logout.mutate()}>
         {({ pressed }) => (
