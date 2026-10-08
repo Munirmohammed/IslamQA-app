@@ -57,8 +57,32 @@ export default function PracticeScreen() {
     check.reset();
   };
 
-  // Speak the result, then auto-advance to the next ayah -- the one part
-  // of "hands-free" this can deliver for real without eyes on the screen.
+  // A reciter not looking at the screen still gets auto-advance after a
+  // generous idle delay; one actually watching can tap "Try again" or
+  // "Next ayah" instead of being railroaded by a fixed timer. Either
+  // button calls check.reset()/setCurrentAyah, which changes check.data
+  // and naturally cancels the pending timer via this effect's own cleanup.
+  const IDLE_ADVANCE_MS = 8000;
+
+  const tryAgain = () => {
+    check.reset();
+  };
+
+  const advanceToNext = () => {
+    const ayahCount = surah?.ayahs.length;
+    const next = (currentAyah ?? 0) + 1;
+    if (ayahCount !== undefined && next > ayahCount) {
+      Speech.speak('Surah complete.', { language: 'en-US' });
+      setSessionActive(false);
+      return;
+    }
+    setCurrentAyah(next);
+    check.reset();
+  };
+
+  // Speak the result, then idle-advance to the next ayah if the reciter
+  // doesn't interact -- the one part of "hands-free" this can deliver for
+  // real without eyes on the screen.
   useEffect(() => {
     if (!sessionActive || !check.data) return;
 
@@ -67,22 +91,11 @@ export default function PracticeScreen() {
       : `${check.data.mistakes.length} mistake${check.data.mistakes.length === 1 ? '' : 's'}.`;
     Speech.speak(utterance, { language: 'en-US' });
 
-    const ayahCount = surah?.ayahs.length;
-    const timer = setTimeout(() => {
-      const next = (currentAyah ?? 0) + 1;
-      if (ayahCount !== undefined && next > ayahCount) {
-        Speech.speak(`Surah complete.`, { language: 'en-US' });
-        setSessionActive(false);
-        return;
-      }
-      setCurrentAyah(next);
-      check.reset();
-    }, 3000);
-
+    const timer = setTimeout(advanceToNext, IDLE_ADVANCE_MS);
     return () => clearTimeout(timer);
-    // currentAyah and surah intentionally excluded: this effect should
-    // only re-fire when a NEW check result arrives, not when the ayah
-    // counter it itself advances changes.
+    // advanceToNext (and what it closes over) intentionally excluded: this
+    // effect should only re-fire when a NEW check result arrives, not when
+    // the ayah counter it itself advances changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [check.data, sessionActive]);
 
@@ -182,6 +195,29 @@ export default function PracticeScreen() {
                 surahNumber={check.data.surah_number}
                 ayahNumber={check.data.ayah_number}
               />
+
+              {sessionActive && (
+                <View style={styles.sessionActions}>
+                  <Pressable onPress={tryAgain} style={styles.sessionActionButton}>
+                    {({ pressed }) => (
+                      <ThemedView style={[styles.sessionButton, pressed && styles.sessionButtonPressed]}>
+                        <ThemedText type="smallBold">Try again</ThemedText>
+                      </ThemedView>
+                    )}
+                  </Pressable>
+                  <Pressable onPress={advanceToNext} style={styles.sessionActionButton}>
+                    {({ pressed }) => (
+                      <ThemedView
+                        type="primaryMuted"
+                        style={[styles.sessionButton, pressed && styles.sessionButtonPressed]}>
+                        <ThemedText type="smallBold" themeColor="primary">
+                          Next ayah →
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                  </Pressable>
+                </View>
+              )}
             </ThemedView>
           </ScrollView>
         )}
@@ -228,5 +264,20 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.four,
     gap: Spacing.three,
+  },
+  sessionActions: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  sessionActionButton: {
+    flex: 1,
+  },
+  sessionButton: {
+    borderRadius: Spacing.two,
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+  },
+  sessionButtonPressed: {
+    opacity: 0.7,
   },
 });
