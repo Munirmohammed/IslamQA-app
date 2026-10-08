@@ -44,6 +44,36 @@ interface RequestOptions {
   auth?: boolean;
 }
 
+// The access token is short-lived (30 min -- see settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+// so any session longer than that needs a silent refresh or every screen
+// just shows "couldn't load" while still looking logged in. Shared across
+// concurrent 401s so a burst of failing requests triggers one refresh
+// call, not one per request.
+let refreshPromise: Promise<boolean> | null = null;
+
+async function refreshAccessToken(): Promise<boolean> {
+  const { refreshToken, setTokens, clearTokens } = useAuthStore.getState();
+  if (!refreshToken) return false;
+
+  try {
+    // /auth/refresh takes refresh_token as a query param, not a JSON body
+    // (see app/api/v1/endpoints/auth.py -- it's a bare `str` parameter).
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/auth/refresh?refresh_token=${encodeURIComponent(refreshToken)}`,
+      { method: 'POST' }
+    );
+    if (!response.ok) {
+      await clearTokens();
+      return false;
+    }
+    const tokens = (await response.json()) as { access_token: string; refresh_token: string };
+    await setTokens(tokens.access_token, tokens.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, form, auth = true } = options;
 
@@ -63,11 +93,22 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  let response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: requestBody,
   });
+
+  if (response.status === 401 && auth) {
+    refreshPromise ??= refreshAccessToken().finally(() => {
+      refreshPromise = null;
+    });
+    if (await refreshPromise) {
+      const token = useAuthStore.getState().accessToken;
+      if (token) headers.Authorization = `Bearer ${token}`;
+      response = await fetch(`${API_BASE_URL}${path}`, { method, headers, body: requestBody });
+    }
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, await parseErrorDetail(response));
