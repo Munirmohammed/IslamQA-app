@@ -1,6 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiRequest } from '@/lib/api-client';
+import {
+  downloadSurah,
+  getDownloadedSurah,
+  isSurahDownloaded,
+  listDownloadedSurahs,
+  removeDownloadedSurah,
+} from '@/lib/offline-packs';
 
 import type { SurahDetail, SurahSummary } from './types';
 
@@ -15,8 +22,49 @@ export function useSurahs() {
 export function useSurah(surahNumber: number | undefined) {
   return useQuery({
     queryKey: ['quran', 'surah', surahNumber],
-    queryFn: () => apiRequest<SurahDetail>(`/api/v1/quran/${surahNumber}`, { auth: false }),
+    // An offline pack, once downloaded, is authoritative for this surah --
+    // check it before ever touching the network, so a downloaded surah
+    // genuinely reads with no connection at all, not just "usually cached".
+    queryFn: () => {
+      if (surahNumber === undefined) throw new Error('surahNumber is required');
+      const offline = getDownloadedSurah(surahNumber);
+      if (offline) return offline;
+      return apiRequest<SurahDetail>(`/api/v1/quran/${surahNumber}`, { auth: false });
+    },
     enabled: surahNumber !== undefined,
     staleTime: Infinity, // ayah text never changes at runtime
+  });
+}
+
+export function useDownloadedSurahs() {
+  return useQuery({
+    queryKey: ['quran', 'offline-packs'],
+    queryFn: () => listDownloadedSurahs(),
+  });
+}
+
+export function useIsSurahDownloaded(surahNumber: number) {
+  const { data } = useDownloadedSurahs();
+  return data?.includes(surahNumber) ?? isSurahDownloaded(surahNumber);
+}
+
+export function useDownloadSurah() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (surahNumber: number) => downloadSurah(surahNumber),
+    onSuccess: (surah, surahNumber) => {
+      queryClient.setQueryData(['quran', 'surah', surahNumber], surah);
+      queryClient.invalidateQueries({ queryKey: ['quran', 'offline-packs'] });
+    },
+  });
+}
+
+export function useRemoveDownloadedSurah() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (surahNumber: number) => removeDownloadedSurah(surahNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quran', 'offline-packs'] });
+    },
   });
 }
