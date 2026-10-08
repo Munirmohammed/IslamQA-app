@@ -16,7 +16,7 @@ export default function AppTabs() {
       {/* sf= (SF Symbols) covers iOS, the only platform tested right now.
           Android needs real drawable resources in android/app/src/main/res
           -- not guessed at here -- added in the Android-parity phase (F10). */}
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="home">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" />
       </NativeTabs.Trigger>
