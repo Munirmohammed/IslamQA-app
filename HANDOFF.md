@@ -94,13 +94,16 @@ padding.
   (`Aisha_Q`, `Yusuf92`, `Fatima_reads`, `Omar_K`) so the leaderboard and
   heatmap don't look empty. Also `demo_tester` / `TestPass123!` from
   earlier ad-hoc testing (joined to a test halaqa).
-- **Everything in §5 (F0-F7 plus both "also shipped" batches) has been
-  self-tested** by Claude (Playwright against the web target + direct
-  backend `curl` calls + the real pytest suite, 221 passing) but **not yet
-  confirmed on the real iPhone** as of this session ending — the user was
-  away from their phone and asked Claude to keep building and
-  self-testing, with a full on-device pass to happen next.
-  **That on-device pass is the single most important next action.**
+- **Everything in §5 has been self-tested** by Claude (Playwright against
+  the web target + direct backend `curl` calls + the real pytest suite,
+  228+ passing). The first real **on-device pass has now happened** (not
+  just self-testing) and found genuine bugs self-testing missed — see §4
+  items 24, 26-27 for the two most significant (token refresh, the Al-
+  Fatiha BOM, Whisper hallucinating short clips) — all fixed and verified.
+  That pass was against the *old* 4-tab nav, though: the 5-tab restructure
+  and visual pass (§5 third build batch) still only has web-harness
+  verification. **A fresh on-device pass against the new nav is the next
+  most valuable thing to do**, not a full repeat from scratch.
 - `src/components/launch-animation.tsx` is the real app-launch sequence:
   the Qalam mark (a pen-stroke swash, path data shared via
   `src/constants/brand-mark.ts`) draws itself, spins once, reveals a
@@ -123,13 +126,15 @@ npx expo start --clear
 ```
 
 If the phone can't reach the backend: confirm both devices are on the
-*same* WiFi network, confirm the firewall rule from above exists and is
-enabled (`Get-NetFirewallRule -DisplayName "IslamQA backend (port 8000)"`),
-confirm Windows categorizes that network as anything (the port-based rule
-uses `-Profile Any` so this shouldn't matter, but verify) — do **not**
-reach for ngrok as a first resort this time; the backend tunnel pattern
-from early in this project had its own problems (see §4 item 15) and the
-direct-LAN fix is more reliable once the firewall rule is in place.
+*same* WiFi/hotspot network, confirm **both** firewall rules exist and are
+enabled (`Get-NetFirewallRule -DisplayName "IslamQA backend (port 8000)"`
+and `"IslamQA Metro (port 8081)"` — Metro needs one too, not just the
+backend), confirm Windows categorizes that network as anything (the
+port-based rules use `-Profile Any` so this shouldn't matter, but verify)
+— do **not** reach for ngrok as a first resort this time; the backend
+tunnel pattern from early in this project had its own problems (see §4
+item 15) and the direct-LAN fix is more reliable once both firewall rules
+are in place.
 
 ---
 
@@ -418,6 +423,59 @@ area again.
     seconds later passed cleanly in under 5 minutes. If a full-suite run
     looks catastrophic, stop the dev server/Metro first and re-run before
     assuming a real regression.
+26. **The Quran corpus's very first ayah (1:1) carried a leading U+FEFF
+    BOM** in `text_uthmani`/`text_simple` — alquran.cloud's raw data for
+    just that one entry, not the whole corpus. The Basmalah-split path
+    incidentally strips this for every *other* surah's ayah 1, but 1:1
+    skips that path (it IS the Basmalah), so the BOM survived and made
+    the recitation checker flag a false "incorrect" mistake on the very
+    first word of literally every attempt at the first ayah of the
+    Quran — even a perfect recitation. Fixed by stripping a leading BOM
+    unconditionally in `_merge_editions`, plus patching the already-
+    cached `data/quran/quran_corpus.json`.
+27. **Whisper hallucinates a full ayah's completion from a short/partial
+    clip** — this checkpoint is fine-tuned specifically on Quranic
+    recitation, so it has an unusually strong prior toward "finishing"
+    a well-known ayah even when only its first word or two was actually
+    said, silently hiding every word the user never recited. Fixed by
+    capping `max_new_tokens` to roughly what the audio's own duration
+    could contain (`recitation_asr_service.py`), plus rejecting audio
+    under 0.3s outright. This is a real, demonstrated limitation of
+    small Whisper checkpoints on short inputs, not specific to this one
+    model — keep the duration cap if the model is ever swapped.
+28. **`npx expo start` backgrounded via this session's task tooling
+    routinely leaves a zombie `node.exe` holding the port after the task
+    is "stopped"** — `TaskStop`/killing the wrapper shell does not
+    reliably kill the underlying Metro process on Windows. Restarting
+    "the same" dev server repeatedly without checking `netstat` can mean
+    every "restart" is actually still hitting the old zombie, serving
+    stale bundled code *and* a stale `.expo/types/router.d.ts` (see next
+    item) — this cost real time during the nav restructure, where moved/
+    deleted routes kept reappearing as "still valid" in `tsc`'s eyes.
+    Always verify with `netstat -ano | grep ":<port>"` and `taskkill //F
+    //PID <pid>` for anything unexpected before trusting a "fresh" start.
+29. **Expo Router's typed-routes generation
+    (`.expo/types/router.d.ts`) is unreliable across a directory
+    restructure** — bare-directory shorthand hrefs (`/quran` resolving
+    to `quran/index.tsx`) only reliably appear after a genuinely cold
+    start (stray process killed, `.expo/types` *and* `node_modules/.cache`
+    deleted, then `expo start --clear`); incremental regeneration during
+    a live session can silently keep stale entries for deleted routes
+    (`/read`, `/profile` kept appearing minutes after those directories
+    were gone) while never adding the new bare-path aliases. If `tsc`
+    rejects an href that's obviously a real route, suspect this before
+    the route code itself — confirm by grepping
+    `.expo/types/router.d.ts` directly for the exact literal path.
+30. **A screen moved from "has a native Stack header" to "is a tab
+    landing with `headerShown: false` and its own in-body title" needs
+    its `SafeAreaView`'s `edges` prop revisited** — `edges={['bottom']}`
+    was correct when a real header reserved the top safe area; carried
+    over unchanged, it leaves zero top clearance once that header is
+    gone, and the screen's own title renders flush against the status
+    bar on native (invisible on web too, hidden behind the floating web
+    tab bar's pill, which sits `position: absolute` over the content).
+    Fix: drop to the default (all-edges) `SafeAreaView` and match
+    Home's `paddingTop: Spacing.six` convention for tab landings.
 
 ---
 
@@ -530,7 +588,7 @@ Backend tests for all four: 215 → 221 passing (full suite, isolated run —
 see §4 item 25 about not trusting a full-suite run contended with a live
 dev server). Each verified live via the web self-testing method in §3
 with real seeded data, not just unit tests.
-- **Hifz Garden** (`src/components/hifz-garden.tsx`, `src/app/profile/garden.tsx`,
+- **Hifz Garden** (`src/components/hifz-garden.tsx`, `src/app/hifz/garden.tsx`,
   backend `GET /memorization/progress`): a juz "bed" of 30 buds that fill
   in as juz are memorized (fraction = ayahs learned / that juz's real
   ayah count, so a juz only blooms once *every* ayah in it is learned —
@@ -563,6 +621,49 @@ new information):
   chatbot" stance (see F5 above) was a deliberate call already made this
   project, not an oversight; revisit only if the user explicitly asks.
 
+### Third build batch — the first real on-device pass, then a structural/visual redesign
+The first genuine on-device test surfaced real bugs self-testing never
+would have (see §4 items 26-27 for the two most significant: the Al-Fatiha
+1:1 BOM and Whisper's short-clip hallucination), plus UX feedback that
+the app felt thin and unstructured despite its real feature breadth. Full
+plan is (or was) at the session's plan file; summarized here:
+
+**Bug fixes** (all with regression tests): the BOM fix, the ASR
+hallucination cap, token auto-refresh (§4 item 24 territory — access
+tokens expire in 30 min with no refresh, so any real session eventually
+saw every screen fail silently while still looking logged in; `apiRequest`
+now retries once through `/auth/refresh` on a 401, sharing one in-flight
+refresh across concurrent failures), the Mutashabihat quiz redesign (it
+used to launch from a specific ayah with that same ayah as the answer —
+see new `GET /quran/random-ayah` and the rewritten `src/app/quran/quiz.tsx`),
+"Ask the Quran"'s search-button/expand-collapse fixes, and the hands-free
+practice session's forced-3s-auto-advance replaced with explicit
+"Try again"/"Next ayah" actions (an 8s idle fallback remains for hands-off
+use).
+
+**Navigation restructure** (§4 items 28-30 cover the real tooling traps
+hit along the way): 4 tabs → 5 — **Home** (dashboard), **Quran** (merges
+the old Read + Practice + Ask the Quran — the core loop shouldn't be split
+across tabs), **Hifz** (new hub: review queue, Garden, Tajweed Coach, all
+one level deep instead of three separate Profile sub-screens), **Community**
+(halaqas + both leaderboards), **More** (renamed from Profile, now just
+account/auth — the feature links it used to hold moved to their own tabs).
+Every route re-verified live via the web harness after the move.
+
+**Design system**: `ThemedView` now applies a subtle shadow automatically
+for `type="backgroundElement"` (the app's existing card convention) —
+every card in the app got real depth from one change. New `Skeleton` and
+`EmptyState` components, adopted on the Quran/Hifz/Community tab landings
+so far (Home and More didn't have generic loading/error text to replace;
+the remaining ~15 sub-screens are a reasonable next pass, not yet done —
+see §6).
+
+**Not yet done from this batch's own plan** (scoped but not started —
+genuinely next, not blocked on anything): the remaining visual pass on
+sub-screens beyond the 3 tab landings, and the Phase C "Islamic lifestyle
+app" expansion (prayer times, qibla compass, dua/azkar, hadith browser,
+Hijri calendar) — see §6.
+
 ---
 
 ## 6. What's genuinely next — and what's blocked on something only the user can do
@@ -580,10 +681,30 @@ left falls into two different buckets, and it matters which:
   DB (see second build batch above), just no endpoint/UI surfaces them yet.
 - **Offline tajweed data** in the F7 download pack (currently text-only
   by choice, not blocker — see F7 above).
-- **A full on-device confirmation pass** of everything in §5 — this is
-  less "a feature to build" and more the single most valuable next thing
-  to actually do, since nothing past F1 has been touched by a real finger
-  on a real screen yet.
+- **An on-device confirmation pass of the nav restructure specifically**
+  (§5 third build batch) — the first on-device pass already happened and
+  found/fixed real bugs (§4 items 24, 26-27), but that was against the
+  *old* 4-tab structure; the new 5-tab one has only been verified via the
+  web harness so far, which already caught and fixed one real safe-area
+  bug (§4 item 30) that the web harness itself could easily have missed
+  on a different screen. Don't assume the restructure is finger-tested
+  until it actually has been.
+- **The remaining visual pass**: Skeleton/EmptyState are adopted on 3 of
+  5 tab landings (Quran, Hifz, Community) — Home, More, and every one-
+  level-deep sub-screen (surah detail, practice, quiz, garden, coach,
+  halaqa roster/student, both leaderboards, khatmah detail) still have
+  the older plain-text loading/error pattern. Mechanical, bounded work,
+  not a design decision — just hasn't been done yet.
+- **Phase C — expand into a full Islamic-lifestyle app** (the user's own
+  explicit scope decision for this batch, see third build batch above):
+  prayer times and qibla compass are both pure client-side calculation
+  (no backend) — `adhan` + `expo-location` for prayer times, `expo-sensors`'
+  magnetometer + a bearing calculation to the Kaaba for qibla. Hijri
+  calendar/Ramadan countdown is similarly client-side. Dua/azkar needs a
+  static JSON content dataset bundled in the app (sourcing it is the real
+  task, not engineering). Hadith browser is the one piece needing genuine
+  new backend/corpus work (mirror `quran_corpus_service.py`'s pattern) —
+  do it last, after the cheaper client-side pieces ship.
 
 ### Genuinely blocked — needs the user, not more Claude Code time
 - **F8 (OS-native integration: widgets, Live Activity, Siri shortcuts)**
@@ -658,18 +779,23 @@ new information):
    already and will again. If backend or Metro aren't running, start them
    per §1's resume block.
 3. If the user wants to test on the real device: confirm phone and PC are
-   on the same WiFi, confirm the port-8000 firewall rule exists (§1), and
-   do the **full on-device walkthrough** that's never actually happened
-   yet — every feature in §5, not just F0/F1. Expect to find and fix real
-   bugs the web self-testing method in §3 couldn't catch (its own known
-   limitations are listed there) — that's expected, not a sign something
-   was done wrong.
+   on the same WiFi/hotspot, re-check the port-8000 **and port-8081**
+   firewall rules exist (§1 — a new network needs both re-verified, not
+   just assumed), and keep doing the **on-device walkthrough** — a first
+   pass already happened and found/fixed real bugs (§4 items 24, 26-27),
+   but it was against the old 4-tab nav; the new 5-tab restructure (§5
+   third build batch) hasn't been finger-tested yet. Expect to find more
+   real bugs the web self-testing method in §3 couldn't catch (its own
+   known limitations are listed there) — that's expected, not a sign
+   something was done wrong.
 4. If the user wants to keep building: start from §6's "buildable now"
    list, in whatever order they prefer — none of it is blocked. Use the
    same discipline as every phase before it: verify the real API/library
    behavior first, plan, build, **actually test it** (§3's method, plus
-   the real pytest suite for any backend change — currently 185 tests,
-   should stay green), commit when asked.
+   the real pytest suite for any backend change — currently 228+ tests,
+   should stay green), commit when asked. **Before trusting any `tsc`
+   route-type error after moving/renaming routes, see §4 items 28-29** —
+   it's very likely a stale cache, not a real error.
 5. If the user wants F8-F11 or the camera feature: read §6's "genuinely
    blocked" list first and have the conversation about what the user
    needs to do (run an EAS build, get on an Android device, etc.) before
