@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AyahCard } from '@/components/ayah-card';
@@ -37,7 +37,22 @@ export default function SurahDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: surah?.surah_name_en ?? '' }} />
+      <Stack.Screen
+        options={{
+          title: surah?.surah_name_en ?? '',
+          headerRight: () => (
+            <Link href={{ pathname: '/read/quiz', params: { surah: surahNumber } }} asChild>
+              <Pressable hitSlop={8}>
+                {({ pressed }) => (
+                  <ThemedText type="small" themeColor="primary" style={{ opacity: pressed ? 0.6 : 1 }}>
+                    Quiz me
+                  </ThemedText>
+                )}
+              </Pressable>
+            </Link>
+          ),
+        }}
+      />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {isLoading && (
           <ThemedText themeColor="textSecondary" style={styles.message}>

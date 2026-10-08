@@ -9,7 +9,7 @@ import {
   removeDownloadedSurah,
 } from '@/lib/offline-packs';
 
-import type { SurahDetail, SurahSummary } from './types';
+import type { RandomAyah, SurahDetail, SurahSummary } from './types';
 
 export function useSurahs() {
   return useQuery({
@@ -56,6 +56,21 @@ export function useDownloadSurah() {
       queryClient.setQueryData(['quran', 'surah', surahNumber], surah);
       queryClient.invalidateQueries({ queryKey: ['quran', 'offline-packs'] });
     },
+  });
+}
+
+/** Fetches a fresh random ayah on demand -- a mutation rather than a
+ * query, since "get another random question" is an explicit action, not
+ * a cacheable resource. Pass a surah number to scope it, or undefined for
+ * anywhere in the Quran. Powers the Mutashabihat quiz's question source
+ * (see src/app/read/quiz.tsx) so the quiz doesn't reveal its own answer. */
+export function useRandomAyah() {
+  return useMutation({
+    mutationFn: (surah?: number) =>
+      apiRequest<RandomAyah>(
+        `/api/v1/quran/random-ayah${surah !== undefined ? `?surah=${surah}` : ''}`,
+        { auth: false }
+      ),
   });
 }
 

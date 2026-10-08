@@ -105,26 +105,6 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
 
         <Link
           href={{
-            pathname: '/read/quiz',
-            params: {
-              surah: ayah.surah_number,
-              ayah: ayah.ayah_number,
-              surahNameEn,
-              textUthmani: ayah.text_uthmani,
-            },
-          }}
-          asChild>
-          <Pressable>
-            {({ pressed }) => (
-              <ThemedText type="small" themeColor="primary" style={{ opacity: pressed ? 0.6 : 1 }}>
-                Quiz me
-              </ThemedText>
-            )}
-          </Pressable>
-        </Link>
-
-        <Link
-          href={{
             pathname: '/read/tafsir',
             params: { surah: ayah.surah_number, ayah: ayah.ayah_number, surahNameEn },
           }}

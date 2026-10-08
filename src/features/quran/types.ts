@@ -30,3 +30,11 @@ export interface SurahDetail {
   revelation_type: string;
   ayahs: Ayah[];
 }
+
+export interface RandomAyah {
+  surah_number: number;
+  ayah_number: number;
+  surah_name_en: string;
+  text_uthmani: string;
+  translation_en: string;
+}

@@ -85,6 +85,16 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
+        <Link href="/read/quiz" asChild>
+          <Pressable>
+            {({ pressed }) => (
+              <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>
+                Random Quiz →
+              </ThemedText>
+            )}
+          </Pressable>
+        </Link>
+
         {me && (
           <Link href="/home/leaderboard" asChild>
             <Pressable>
