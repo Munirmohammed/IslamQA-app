@@ -23,9 +23,10 @@ import { useSurah } from '@/features/quran/api';
  *   specific ayah, checked directly against it.
  */
 export default function PracticeScreen() {
-  const params = useLocalSearchParams<{ surah?: string; ayah?: string }>();
+  const params = useLocalSearchParams<{ surah?: string; ayah?: string; surahNameEn?: string }>();
   const presetSurah = params.surah ? Number(params.surah) : undefined;
   const presetAyah = params.ayah ? Number(params.ayah) : undefined;
+  const presetSurahName = params.surahNameEn;
 
   const check = useRecitationCheck();
   const logProgress = useLogProgress();
@@ -108,9 +109,9 @@ export default function PracticeScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
           {sessionActive
-            ? `Ayah ${presetSurah}:${currentAyah}`
+            ? `${presetSurahName ?? 'Surah ' + presetSurah} ${presetSurah}:${currentAyah}`
             : presetSurah && presetAyah
-              ? `Ayah ${presetSurah}:${presetAyah}`
+              ? `${presetSurahName ?? 'Surah ' + presetSurah} ${presetSurah}:${presetAyah}`
               : 'Tasmeea'}
         </ThemedText>
         <ThemedText themeColor="textSecondary">

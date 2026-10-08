@@ -42,7 +42,9 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
           </ThemedText>
         </View>
 
-        <Link href={`/practice?surah=${ayah.surah_number}&ayah=${ayah.ayah_number}`} asChild>
+        <Link
+          href={`/practice?surah=${ayah.surah_number}&ayah=${ayah.ayah_number}&surahNameEn=${encodeURIComponent(surahNameEn)}`}
+          asChild>
           <Pressable hitSlop={8}>
             {({ pressed }) => (
               <View style={[styles.micBadge, { opacity: pressed ? 0.6 : 1 }]}>
