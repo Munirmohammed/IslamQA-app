@@ -90,3 +90,27 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Cards had no depth at all before this -- flat `backgroundElement`
+ * fills on a flat background. iOS reads `shadow*`, Android reads
+ * `elevation`; both are set so either platform gets the right look.
+ * Not themed per light/dark on purpose: a black shadow naturally fades
+ * on a near-black dark background, which is the normal, expected look
+ * for depth in dark mode, not a bug to special-case around. */
+export const Elevation = {
+  low: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 2 },
+    android: { elevation: 2 },
+    default: {},
+  }),
+  medium: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6 },
+    android: { elevation: 4 },
+    default: {},
+  }),
+  high: Platform.select({
+    ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.16, shadowRadius: 12 },
+    android: { elevation: 8 },
+    default: {},
+  }),
+} as const;

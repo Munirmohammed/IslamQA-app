@@ -43,9 +43,12 @@ export default function AppTabs() {
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+      {/* Suppress ThemedView's default "backgroundElement" shadow here --
+          these buttons already sit inside the nav bar pill's own shadow,
+          and a shadow on every individual tab would look cluttered. */}
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
+        style={[styles.tabButtonView, styles.noShadow]}>
         <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
           {children}
         </ThemedText>
@@ -97,5 +100,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+  },
+  noShadow: {
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
 });
