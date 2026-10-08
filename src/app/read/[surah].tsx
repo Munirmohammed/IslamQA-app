@@ -34,7 +34,7 @@ export default function SurahDetailScreen() {
           <FlashList
             data={surah.ayahs}
             keyExtractor={(item) => item.key}
-            renderItem={({ item }) => <AyahCard ayah={item} />}
+            renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
             contentContainerStyle={styles.listContent}
             ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
           />
