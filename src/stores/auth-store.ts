@@ -43,18 +43,31 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setTokens: async (accessToken, refreshToken) => {
-    await Promise.all([
-      SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
-      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
-    ]);
+    // Update in-memory state unconditionally: SecureStore has no web
+    // implementation (throws), and a real device's keychain/keystore can
+    // fail too. Persistence failing shouldn't also fail login -- it just
+    // means the session won't survive a reload, same tradeoff hydrate()
+    // already makes on the read side.
+    try {
+      await Promise.all([
+        SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
+        SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+      ]);
+    } catch (error) {
+      console.warn('Failed to persist auth tokens, session will not survive a reload:', error);
+    }
     set({ accessToken, refreshToken });
   },
 
   clearTokens: async () => {
-    await Promise.all([
-      SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
-    ]);
+    try {
+      await Promise.all([
+        SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
+        SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+      ]);
+    } catch (error) {
+      console.warn('Failed to clear persisted auth tokens:', error);
+    }
     set({ accessToken: null, refreshToken: null });
   },
 }));
