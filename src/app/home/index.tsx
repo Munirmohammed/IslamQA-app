@@ -1,14 +1,18 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ActivityHeatmap } from '@/components/activity-heatmap';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useMe } from '@/features/auth/api';
+import { useHistory, useStreak } from '@/features/gamification/api';
 
 export default function HomeScreen() {
   const { data: me } = useMe();
+  const { data: streak } = useStreak();
+  const { data: history } = useHistory(30);
 
   return (
     <ThemedView style={styles.container}>
@@ -19,6 +23,38 @@ export default function HomeScreen() {
         <ThemedText themeColor="textSecondary" style={styles.subtitle}>
           Your Quran companion -- recitation, memorization, and tafsir, all in one place.
         </ThemedText>
+
+        {me &&
+          (streak ? (
+            <ThemedView type="backgroundElement" style={styles.streakCard}>
+              <View style={styles.streakStat}>
+                <ThemedText type="title" style={styles.streakNumber}>
+                  {streak.current_streak}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  day streak
+                </ThemedText>
+              </View>
+              <View style={styles.streakDivider} />
+              <View style={styles.streakStat}>
+                <ThemedText type="title" style={styles.streakNumber}>
+                  {streak.total_hasanat.toLocaleString()}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  hasanat
+                </ThemedText>
+              </View>
+            </ThemedView>
+          ) : (
+            <ThemedView type="backgroundElement" style={styles.streakCardEmpty}>
+              <ThemedText type="smallBold">Start your streak</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Read or recite an ayah to earn your first hasanat.
+              </ThemedText>
+            </ThemedView>
+          ))}
+
+        {me && history && <ActivityHeatmap days={history.days} />}
 
         <Link href="/read" asChild>
           <Pressable>
@@ -34,9 +70,30 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
+        <Link href="/home/ask" asChild>
+          <Pressable>
+            {({ pressed }) => (
+              <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>
+                Ask the Quran →
+              </ThemedText>
+            )}
+          </Pressable>
+        </Link>
+
+        {me && (
+          <Link href="/home/leaderboard" asChild>
+            <Pressable>
+              {({ pressed }) => (
+                <ThemedText type="link" themeColor="primary" style={pressed && styles.ctaPressed}>
+                  View leaderboard →
+                </ThemedText>
+              )}
+            </Pressable>
+          </Link>
+        )}
+
         <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-          Voice recitation checking, streaks, memorization reviews, and tajweed coloring are
-          coming in the next phases -- this is the foundation they build on.
+          Memorization reviews and tajweed coloring are coming in the next phases.
         </ThemedText>
       </SafeAreaView>
     </ThemedView>
@@ -72,6 +129,33 @@ const styles = StyleSheet.create({
   },
   ctaPressed: {
     opacity: 0.8,
+  },
+  streakCard: {
+    flexDirection: 'row',
+    borderRadius: Spacing.three,
+    paddingVertical: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    alignItems: 'center',
+  },
+  streakCardEmpty: {
+    borderRadius: Spacing.three,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    gap: Spacing.half,
+  },
+  streakStat: {
+    flex: 1,
+    alignItems: 'center',
+    gap: Spacing.half,
+  },
+  streakDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(128, 128, 128, 0.3)',
+  },
+  streakNumber: {
+    fontSize: 32,
+    lineHeight: 36,
   },
   note: {
     marginTop: Spacing.four,
