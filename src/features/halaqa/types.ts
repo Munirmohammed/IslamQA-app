@@ -39,3 +39,15 @@ export interface StudentSession {
   created_at: string;
   mistakes: HalaqaMistake[];
 }
+
+export interface HalaqaLeaderboardEntry {
+  rank: number;
+  username: string;
+  current_streak: number;
+  total_hasanat: number;
+}
+
+export interface HalaqaLeaderboardResponse {
+  metric: string;
+  entries: HalaqaLeaderboardEntry[];
+}

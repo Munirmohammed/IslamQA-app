@@ -10,6 +10,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="halaqa" options={{ title: 'Halaqa' }} />
       <Stack.Screen name="halaqa-roster" options={{ title: '' }} />
       <Stack.Screen name="halaqa-student" options={{ title: '' }} />
+      <Stack.Screen name="halaqa-leaderboard" options={{ title: '' }} />
     </Stack>
   );
 }

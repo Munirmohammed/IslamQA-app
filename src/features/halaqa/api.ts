@@ -3,7 +3,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth-store';
 
-import type { Halaqa, MyHalaqasResponse, StudentSession, StudentSummary } from './types';
+import type {
+  Halaqa,
+  HalaqaLeaderboardResponse,
+  MyHalaqasResponse,
+  StudentSession,
+  StudentSummary,
+} from './types';
 
 export function useMyHalaqas() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -53,5 +59,13 @@ export function useStudentSessions(halaqaId: string | undefined, studentId: stri
     queryFn: () =>
       apiRequest<StudentSession[]>(`/api/v1/halaqa/${halaqaId}/students/${studentId}/sessions`),
     enabled: !!halaqaId && !!studentId,
+  });
+}
+
+export function useHalaqaLeaderboard(halaqaId: string | undefined) {
+  return useQuery({
+    queryKey: ['halaqa', 'leaderboard', halaqaId],
+    queryFn: () => apiRequest<HalaqaLeaderboardResponse>(`/api/v1/halaqa/${halaqaId}/leaderboard`),
+    enabled: !!halaqaId,
   });
 }

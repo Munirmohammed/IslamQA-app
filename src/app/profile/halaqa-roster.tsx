@@ -17,6 +17,17 @@ export default function HalaqaRosterScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: params.halaqaName }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        <Link
+          href={{
+            pathname: '/profile/halaqa-leaderboard',
+            params: { halaqaId: params.halaqaId, halaqaName: params.halaqaName },
+          }}
+          style={styles.leaderboardLink}>
+          <ThemedText type="small" themeColor="primary">
+            View leaderboard →
+          </ThemedText>
+        </Link>
+
         {isLoading && (
           <ThemedText themeColor="textSecondary" style={styles.message}>
             Loading roster…
@@ -82,6 +93,9 @@ const styles = StyleSheet.create({
   message: {
     textAlign: 'center',
     marginTop: Spacing.six,
+  },
+  leaderboardLink: {
+    marginBottom: Spacing.two,
   },
   row: {
     borderRadius: Spacing.three,

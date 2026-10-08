@@ -43,9 +43,7 @@ export default function HalaqaScreen() {
             <View style={styles.section}>
               <ThemedText type="smallBold">Studying</ThemedText>
               {data.studying.map((halaqa) => (
-                <ThemedView key={halaqa.id} type="backgroundElement" style={styles.row}>
-                  <ThemedText>{halaqa.name}</ThemedText>
-                </ThemedView>
+                <StudyingRow key={halaqa.id} halaqa={halaqa} />
               ))}
             </View>
           )}
@@ -69,6 +67,28 @@ function TeachingRow({ halaqa }: { halaqa: Halaqa }) {
             <ThemedText>{halaqa.name}</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               Join code: {halaqa.join_code}
+            </ThemedText>
+          </ThemedView>
+        )}
+      </Pressable>
+    </Link>
+  );
+}
+
+function StudyingRow({ halaqa }: { halaqa: Halaqa }) {
+  return (
+    <Link
+      href={{
+        pathname: '/profile/halaqa-leaderboard',
+        params: { halaqaId: halaqa.id, halaqaName: halaqa.name },
+      }}
+      asChild>
+      <Pressable>
+        {({ pressed }) => (
+          <ThemedView type="backgroundElement" style={[styles.row, pressed && styles.rowPressed]}>
+            <ThemedText>{halaqa.name}</ThemedText>
+            <ThemedText type="small" themeColor="primary">
+              View leaderboard →
             </ThemedText>
           </ThemedView>
         )}
