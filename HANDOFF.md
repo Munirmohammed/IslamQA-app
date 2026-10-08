@@ -66,16 +66,19 @@ padding.
 
 - Backend is **running locally**, port 8000, from `IslamQA\.venv` (the
   project's dedicated venv — see §4 item 14 for a real gotcha about this).
-- **Network has changed multiple times this session** — don't trust any IP
-  written down here without re-checking. At last check the machine was on
-  WiFi network `ETHIOTELECOM-F14-GUEST`, IP `192.168.140.152`, categorized
-  "Public" by Windows. `IslamQA-app/.env` holds
-  `EXPO_PUBLIC_API_URL=http://192.168.140.152:8000` — **re-verify this
-  against the actual current IP** (`ipconfig` / `Get-NetIPAddress`) before
-  trusting it; a network switch (different WiFi, hotspot on/off) changes it
-  silently and nothing will connect until `.env` is updated and Metro is
-  restarted with `--clear` (env vars are inlined into the JS bundle at
-  build time, so editing `.env` alone does nothing until Metro rebuilds).
+- **Network has changed multiple times this session (again)** — don't
+  trust any IP written down here without re-checking. At last check the
+  machine was on IP `192.168.1.102` (gateway `192.168.1.1`); `IslamQA-app/.env`
+  holds `EXPO_PUBLIC_API_URL=http://192.168.1.102:8000`. **Re-verify this
+  against the actual current IP** (`ipconfig` / `Get-NetIPAddress` — pick
+  the adapter with a real default gateway, not a VirtualBox/ICS-hotspot
+  virtual adapter) before trusting it; a network switch (different WiFi,
+  hotspot on/off) changes it silently and nothing will connect until
+  `.env` is updated and Metro is restarted with `--clear` (env vars are
+  inlined into the JS bundle at build time, so editing `.env` alone does
+  nothing until Metro rebuilds). This drift happened mid-session and
+  caused real login failures in the web self-test harness — see §4 item 24
+  for the related (but different) web-login bug it surfaced.
 - **A port-based Windows Firewall rule exists** — `New-NetFirewallRule
   -DisplayName "IslamQA backend (port 8000)" -Direction Inbound -Action
   Allow -Protocol TCP -LocalPort 8000 -Profile Any` — this is the *correct*
@@ -91,11 +94,12 @@ padding.
   (`Aisha_Q`, `Yusuf92`, `Fatima_reads`, `Omar_K`) so the leaderboard and
   heatmap don't look empty. Also `demo_tester` / `TestPass123!` from
   earlier ad-hoc testing (joined to a test halaqa).
-- **Everything in §5 (F0-F7) has been self-tested** by Claude (Playwright
-  against the web target + direct backend `curl` calls + the real pytest
-  suite) but **not yet confirmed on the real iPhone** as of this session
-  ending — the user was away from their phone and asked Claude to keep
-  building and self-testing, with a full on-device pass to happen next.
+- **Everything in §5 (F0-F7 plus both "also shipped" batches) has been
+  self-tested** by Claude (Playwright against the web target + direct
+  backend `curl` calls + the real pytest suite, 221 passing) but **not yet
+  confirmed on the real iPhone** as of this session ending — the user was
+  away from their phone and asked Claude to keep building and
+  self-testing, with a full on-device pass to happen next.
   **That on-device pass is the single most important next action.**
 - `src/components/launch-animation.tsx` is the real app-launch sequence:
   the Qalam mark (a pen-stroke swash, path data shared via
@@ -164,13 +168,12 @@ without re-reading the reasoning — they were skipped on purpose):**
   only. This matters: the frontend's offline-packs feature (F7) is
   deliberately text-only because of this — see F7 below.
 
-### Backend #9-13 (planned, not yet built — pull forward exactly when the
+### Backend #10-13 (planned, not yet built — pull forward exactly when the
 frontend phase needing them starts):
-- **#9 Mistake-pattern analytics** — aggregate Phase 6's persisted
-  `MistakeLog` data: "this user most often misses qalqalah on ق." Needed
-  for a future "Tajweed Coach" dashboard (F4's tajweed coloring itself is
-  now shipped; the personalized-coach layer on top is still backend-#9-
-  gated).
+- ~~#9 Mistake-pattern analytics~~ ✅ shipped (second build batch) as
+  `app/services/mistake_pattern_service.py` + `GET /recitation/my-mistakes`
+  — mistake-type tally, top mistaken words, per-surah correct-rate
+  breakdown. Powers the "Tajweed Coach" dashboard.
 - **#10 Assignments** — teacher assigns an ayah range + due date in a
   halaqa; student's matching `RecitationSession`s auto-satisfy it. F6's
   core (roster, per-student drill-down) is shipped; this is the one piece
@@ -400,6 +403,21 @@ area again.
     The two are mutually exclusive per the CORS spec, and this app's auth
     is a Bearer token header, not a cookie, so dropping credentials in
     debug mode costs nothing.
+24. **`auth-store.ts`'s `setTokens`/`clearTokens` awaited SecureStore writes
+    before updating in-memory state** — since `expo-secure-store` has no
+    web implementation, every login silently failed on the web target
+    (the mutation threw before `set({accessToken, ...})` ran). Fixed the
+    same way `hydrate()` already handles the read side: try/catch around
+    the persistence call, update in-memory state regardless. Web sessions
+    just don't survive a reload, which is the correct tradeoff, not a bug.
+25. **Running the full backend test suite while the dev server, Metro, and
+    Playwright are all live on the same machine causes severe resource
+    contention** — one run took 3.5 hours and produced 97 spurious errors
+    in files nobody had touched (ML model loading / corpus fixtures timing
+    out under CPU starvation), while the exact same suite run in isolation
+    seconds later passed cleanly in under 5 minutes. If a full-suite run
+    looks catastrophic, stop the dev server/Metro first and re-run before
+    assuming a real regression.
 
 ---
 
@@ -427,11 +445,8 @@ struck-through inline spans on the ayah's own text.
   wordmark, verified visually) via `react-native-view-shot` +
   `expo-sharing`, wired into both the Read screen's `AyahCard` and
   Practice's result card
-- **Hifz Garden** (the tree/garden visualization) is the one original F2
-  idea **not** built — it's a visual layer over memorization progress,
-  and makes more sense now that F3's real Hifz data exists; a good
-  candidate for the next session rather than something blocked on
-  anything external.
+- **Hifz Garden** (`src/components/hifz-garden.tsx`, `src/app/profile/garden.tsx`)
+  ✅ shipped in the second build batch — see below.
 
 ### F3 — Memorization (Hifz) UI ✅ SHIPPED
 - "Add to Hifz" button on every ayah in Read
@@ -443,13 +458,19 @@ struck-through inline spans on the ayah's own text.
   endpoint — see §4 item 17 for a real React Compiler purity bug this
   surfaced and how it was fixed
 
-### F4 — Tajweed-Colored Reader ✅ SHIPPED (Tajweed Coach still backend-#9-gated)
+### F4 — Tajweed-Colored Reader ✅ SHIPPED (Tajweed Coach ✅ also shipped)
 Tap-to-reveal tajweed coloring on every ayah in Read
 (`src/components/tajweed-text.tsx`), 7 color families validated for
 colorblind-safety against the app's real surfaces (see §4 item 16).
 Tapping a colored letter shows its rule name/description via `Alert`.
-The personalized "Tajweed Coach" dashboard (patterns like "you often miss
-qalqalah") still needs Backend #9, not built.
+The personalized "Tajweed Coach" dashboard (`src/app/profile/coach.tsx`,
+backend `GET /recitation/my-mistakes`) shipped in the second build batch —
+correct rate, a mistake-type breakdown, most-missed words, and a per-surah
+weakest-first breakdown, all from real `RecitationSession`/`MistakeLog`
+history. Note it's scoped to *recitation-check* mistakes specifically, not
+every tajweed-coloring tap — those are two separate signals that were
+never unified, which is fine (they answer different questions) but worth
+knowing if asked to "unify" them later.
 
 ### F5 — Tafsir & "Ask the Quran" ✅ SHIPPED
 "Explain" button on every ayah → real Ibn Kathir commentary
@@ -464,7 +485,12 @@ not a solid foundation — don't revisit without re-reading why).
 Create/join a halaqa, teacher roster (`src/app/profile/halaqa-roster.tsx`)
 with per-student stats, drill into full session/mistake detail
 (`src/app/profile/halaqa-student.tsx`). Verified end-to-end: created a
-real halaqa as `demo`, joined as `demo_tester`, confirmed the roster.
+real halaqa as `demo`, joined as `demo_tester`, confirmed the roster. A
+per-halaqa leaderboard (`src/app/profile/halaqa-leaderboard.tsx`, backend
+`GET /halaqa/{id}/leaderboard`) shipped in the second build batch — reuses
+the global leaderboard's ranking logic scoped to just that halaqa's
+teacher + students, visible to any member (not teacher-only), linked from
+both the teacher's roster and a student's "Studying" row.
 Assigning homework (needs Backend #10) and "listen in" live mode (needs
 the backend's WebSocket infra, a genuinely separate real-time undertaking)
 are the two original F6 pieces still deferred.
@@ -484,7 +510,7 @@ doesn't crash) — this only matters for the self-testing method in §3, not
 for the real iOS target, where this API is already proven working twice
 over (recitation upload, share-card capture).
 
-### Also shipped this session, from the feature catalog (§6) rather than the numbered roadmap:
+### Also shipped in the first build batch, from the feature catalog (§6) rather than the numbered roadmap:
 - **Hands-free practice session** (`src/app/practice.tsx`): tap to record
   each ayah, then everything else is automated — the result is spoken
   aloud via `expo-speech` and the session auto-advances to the next ayah,
@@ -498,6 +524,45 @@ over (recitation upload, share-card capture).
   microphone, so give this one particular attention on the first real
   on-device pass.
 
+### Second build batch — competitor research-driven gap features, all shipped and tested
+Prompted by "see what Tarteel/other Quran apps have that we don't."
+Backend tests for all four: 215 → 221 passing (full suite, isolated run —
+see §4 item 25 about not trusting a full-suite run contended with a live
+dev server). Each verified live via the web self-testing method in §3
+with real seeded data, not just unit tests.
+- **Hifz Garden** (`src/components/hifz-garden.tsx`, `src/app/profile/garden.tsx`,
+  backend `GET /memorization/progress`): a juz "bed" of 30 buds that fill
+  in as juz are memorized (fraction = ayahs learned / that juz's real
+  ayah count, so a juz only blooms once *every* ayah in it is learned —
+  deliberately strict, not a vanity metric), plus a per-surah leaf list
+  with tracked-vs-learned progress bars. "Learned" reuses `srs_service`'s
+  existing graduated-card threshold (repetitions≥2, interval≥6 days).
+- **Tajweed Coach** — see F4 above.
+- **Khatmah tracking** (`src/features/khatmah/`, `src/app/home/khatmah.tsx`,
+  backend `app/services/khatmah_service.py` + `/khatmah/*`): tracks
+  progress toward a full Quran read-through. New `Khatmah`/
+  `KhatmahReadAyah` tables record *which* ayahs were read (not a counter),
+  so re-reading never inflates progress and completion is exact regardless
+  of reading order. Opening a surah in Read marks its ayahs read — the
+  same coarse "a concrete action happened" signal the rest of the app
+  uses, not scroll-accurate tracking. Auto-starts a khatmah on first read,
+  auto-completes at 100%, and reading again after completion silently
+  starts a fresh one (no dead-end UI state waiting for an explicit
+  "start"). A "start a new khatmah" action exists for restarting early.
+- **Halaqa leaderboard** — see F6 above.
+
+**Not pursued from the research, with reasons** (don't re-propose without
+new information):
+- Multi-reciter audio library, word-by-word tap-translate, letter/rule-level
+  tajweed scoring, ambient "Shazam for Quran" recitation ID — each needs
+  new corpus data, a phonetic ML model, or a voice-embedding model that
+  doesn't exist in this project; see §7's existing entries for the first
+  two specifically.
+- Reconsidering the chatbot decision — flagged during research as
+  something competitors lean on, but F5's existing "retrieval, not a
+  chatbot" stance (see F5 above) was a deliberate call already made this
+  project, not an oversight; revisit only if the user explicitly asks.
+
 ---
 
 ## 6. What's genuinely next — and what's blocked on something only the user can do
@@ -506,12 +571,13 @@ over (recitation upload, share-card capture).
 left falls into two different buckets, and it matters which:
 
 ### Buildable now, no external blocker (good candidates for the next session)
-- **Hifz Garden** (§5, F2) — a tree/garden visualization over real
-  memorization progress; the data to drive it now exists.
-- **Backend #9 (mistake-pattern analytics)** → unlocks the "Tajweed
-  Coach" personalization layer on top of the already-shipped F4 tajweed
-  coloring.
 - **Backend #10 (assignments)** → unlocks the one remaining piece of F6.
+- **Personal mistake-pattern dashboard filters** (e.g. by date range, or a
+  "has my accuracy improved over time" trend line) on top of the already-
+  shipped Tajweed Coach — a reasonable fast-follow, not a blocker.
+- **Khatmah history** (list of past completed/abandoned attempts, not just
+  the current one) — `Khatmah` rows for old attempts already exist in the
+  DB (see second build batch above), just no endpoint/UI surfaces them yet.
 - **Offline tajweed data** in the F7 download pack (currently text-only
   by choice, not blocker — see F7 above).
 - **A full on-device confirmation pass** of everything in §5 — this is
