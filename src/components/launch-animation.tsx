@@ -25,25 +25,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 
+import { BRAND_COLORS, QALAM_MARK } from '@/constants/brand-mark';
 import { ArabicFonts } from '@/constants/theme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const EMERALD = '#0F6B4F';
-const GOLD = '#C9A24B';
-const CREAM = '#FBF7EF';
+const EMERALD = BRAND_COLORS.emerald;
+const GOLD = BRAND_COLORS.gold;
+const CREAM = BRAND_COLORS.cream;
 
-// Same swash as the web concept, shifted from a (0,0)-centered local frame
-// into absolute 0-1024 viewBox coordinates (adding 512 to every point)
-// instead of relying on a separate group transform -- a CSS/attribute
-// transform mismatch on the web version once wiped out an equivalent
-// translate, so this version just bakes the offset into the path data.
-const SWASH_D =
-  'M 362 692 C 362 572, 302 472, 402 372 C 482 292, 622 312, 662 392 C 692 452, 662 532, 582 552 C 522 567, 472 532, 482 472 C 490 427, 532 412, 567 437';
-const DOT_CX = 662;
-const DOT_CY = 692;
-const DOT_R = 34;
+// Coordinates shifted from a (0,0)-centered local frame into absolute
+// 0-1024 viewBox coordinates (adding 512 to every point) instead of relying
+// on a separate group transform -- a CSS/attribute transform mismatch on
+// the web version once wiped out an equivalent translate, so this bakes
+// the offset into the path data instead.
+const SWASH_D = QALAM_MARK.swashD;
+const DOT_CX = QALAM_MARK.dotCx;
+const DOT_CY = QALAM_MARK.dotCy;
+const DOT_R = QALAM_MARK.dotR;
 
 const DRAW_MS = 1100;
 const DOT_DELAY_MS = 1000;
@@ -70,9 +70,19 @@ export function LaunchAnimation({ onFinish }: { onFinish: () => void }) {
     // getTotalLength() needs the native shape to have already measured its
     // geometry; on the very first frame that isn't always ready yet, so
     // retry on the next frame rather than silently skipping the animation.
+    // On a platform where it isn't implemented at all (confirmed: web's
+    // react-native-svg doesn't expose it, crashing with "is not a
+    // function" rather than returning undefined) retrying would spin
+    // forever, so that's treated as a terminal case: skip the draw
+    // animation and finish immediately rather than leave the app stuck
+    // behind a launch screen that can never resolve.
     let frame: number;
     const tryMeasure = () => {
-      const length = pathRef.current?.getTotalLength();
+      if (typeof pathRef.current?.getTotalLength !== 'function') {
+        onFinish();
+        return;
+      }
+      const length = pathRef.current.getTotalLength();
       if (!length) {
         frame = requestAnimationFrame(tryMeasure);
         return;

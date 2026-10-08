@@ -26,11 +26,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   isHydrating: true,
 
   hydrate: async () => {
-    const [accessToken, refreshToken] = await Promise.all([
-      SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
-      SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
-    ]);
-    set({ accessToken, refreshToken, isHydrating: false });
+    // isHydrating gates the entire app's first render (see _layout.tsx), so
+    // a thrown read here -- SecureStore has no web implementation, and a
+    // real device's keychain/keystore can fail too -- must never leave the
+    // app stuck on a blank screen forever; fall back to logged-out instead.
+    try {
+      const [accessToken, refreshToken] = await Promise.all([
+        SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+      ]);
+      set({ accessToken, refreshToken, isHydrating: false });
+    } catch (error) {
+      console.warn('Failed to read persisted auth tokens, starting logged out:', error);
+      set({ accessToken: null, refreshToken: null, isHydrating: false });
+    }
   },
 
   setTokens: async (accessToken, refreshToken) => {
