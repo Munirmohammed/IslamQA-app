@@ -41,6 +41,15 @@ function IslamicTools() {
           )}
         </Pressable>
       </Link>
+      <Link href="/more/azkar" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>📿 Dua &amp; Azkar</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
     </View>
   );
 }

@@ -7,6 +7,8 @@ export default function MoreLayout() {
       <Stack.Screen name="prayer-times" options={{ headerShown: false }} />
       <Stack.Screen name="qibla" options={{ headerShown: false }} />
       <Stack.Screen name="calendar" options={{ headerShown: false }} />
+      <Stack.Screen name="azkar" options={{ headerShown: false }} />
+      <Stack.Screen name="azkar-category" options={{ title: '' }} />
     </Stack>
   );
 }
