@@ -1,5 +1,6 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,6 +9,41 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useLogin, useLogout, useMe, useRegister } from '@/features/auth/api';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
+
+function IslamicTools() {
+  return (
+    <View style={styles.toolsSection}>
+      <ThemedText type="smallBold">Islamic Tools</ThemedText>
+      <Link href="/more/prayer-times" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>🕌 Prayer Times</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+      <Link href="/more/qibla" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>🧭 Qibla Direction</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+      <Link href="/more/calendar" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>📅 Islamic Calendar</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
+    </View>
+  );
+}
 
 function AuthForm() {
   const theme = useTheme();
@@ -122,6 +158,7 @@ export default function MoreScreen() {
         <ThemedText type="title" style={styles.title}>
           More
         </ThemedText>
+        <IslamicTools />
         {accessToken ? <ProfileDetails /> : <AuthForm />}
       </SafeAreaView>
     </ThemedView>
@@ -150,6 +187,13 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.four,
     gap: Spacing.three,
+  },
+  toolsSection: {
+    gap: Spacing.two,
+  },
+  toolRow: {
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
   },
   input: {
     borderWidth: 1,
