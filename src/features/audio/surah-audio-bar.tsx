@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,17 +11,20 @@ import { useReciterStore } from '@/stores/reciter-store';
 
 import { useReciters, useSurahAudioUrl } from './api';
 import { DEFAULT_RECITER_ID } from './constants';
+import { RangeRepeat } from './range-repeat';
 import { ReciterRow } from './reciter-row';
+import { SpeedControl } from './speed-control';
 
 interface SurahAudioBarProps {
   surahNumber: number;
+  totalAyahs: number;
 }
 
 /** A "Play surah" transport control with a reciter picker, reusable
  * across any surah-reading screen. Defaults to Al-Afasy until the user
  * picks a different reciter (see reciter-store.ts); that choice then also
  * applies to every per-ayah Listen button on the same screen. */
-export function SurahAudioBar({ surahNumber }: SurahAudioBarProps) {
+export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
   const theme = useTheme();
   const storedReciterId = useReciterStore((s) => s.reciterId);
   const storedReciterName = useReciterStore((s) => s.reciterName);
@@ -36,6 +39,15 @@ export function SurahAudioBar({ surahNumber }: SurahAudioBarProps) {
 
   const player = useAudioPlayer(audio?.url ?? null);
   const status = useAudioPlayerStatus(player);
+
+  const [speed, setSpeed] = useState(1);
+  // useAudioPlayer replaces the underlying player whenever its source
+  // changes (e.g. the user picks a different reciter), which resets
+  // playbackRate to 1 -- re-apply the user's chosen speed to the new
+  // instance instead of silently dropping it.
+  useEffect(() => {
+    player.setPlaybackRate(speed);
+  }, [player, speed]);
 
   return (
     <View style={styles.container}>
@@ -68,6 +80,10 @@ export function SurahAudioBar({ surahNumber }: SurahAudioBarProps) {
           </Pressable>
         </View>
       </View>
+
+      <SpeedControl speed={speed} onChange={setSpeed} />
+
+      <RangeRepeat surahNumber={surahNumber} totalAyahs={totalAyahs} reciterId={reciterId} />
 
       {showPicker && reciters && (
         <ScrollView style={styles.pickerList} contentContainerStyle={styles.pickerListContent}>

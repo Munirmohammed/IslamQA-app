@@ -76,7 +76,7 @@ export default function SurahDetailScreen() {
             ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
             ListHeaderComponent={
               <ThemedView type="backgroundElement" style={styles.audioBar}>
-                <SurahAudioBar surahNumber={surahNumber} />
+                <SurahAudioBar surahNumber={surahNumber} totalAyahs={surah.ayahs.length} />
               </ThemedView>
             }
           />
