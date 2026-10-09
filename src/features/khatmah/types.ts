@@ -7,6 +7,9 @@ export interface KhatmahProgress {
   ayahs_read: number;
   total_ayahs: number;
   percent_complete: number;
+  last_surah: number | null;
+  last_ayah: number | null;
+  last_surah_name_en: string | null;
 }
 
 export interface MarkAyahsReadInput {
