@@ -39,6 +39,12 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so we can check your Quran recitation."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to compute accurate prayer times and qibla direction."
+        }
+      ],
       "expo-secure-store",
       "expo-font",
       "expo-sharing"
