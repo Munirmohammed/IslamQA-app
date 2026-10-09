@@ -50,6 +50,15 @@ function IslamicTools() {
           )}
         </Pressable>
       </Link>
+      <Link href="/more/hadith" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>📖 Hadith</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
     </View>
   );
 }
