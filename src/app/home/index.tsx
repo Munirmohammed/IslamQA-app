@@ -114,6 +114,7 @@ function ContinueReadingCard({ khatmah }: { khatmah: KhatmahProgress }) {
 }
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const { data: me } = useMe();
   const { data: streak, isLoading: streakLoading, error: streakError } = useStreak();
   const { data: history, isLoading: historyLoading } = useHistory(30);
@@ -146,7 +147,7 @@ export default function HomeScreen() {
                       day streak
                     </ThemedText>
                   </View>
-                  <View style={styles.streakDivider} />
+                  <View style={[styles.streakDivider, { backgroundColor: theme.border }]} />
                   <View style={styles.streakStat}>
                     <ThemedText type="title" style={styles.streakNumber}>
                       {streak.total_hasanat.toLocaleString()}
@@ -284,7 +285,6 @@ const styles = StyleSheet.create({
   streakDivider: {
     width: StyleSheet.hairlineWidth,
     alignSelf: 'stretch',
-    backgroundColor: 'rgba(128, 128, 128, 0.3)',
   },
   streakNumber: {
     fontSize: 32,
