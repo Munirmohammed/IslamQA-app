@@ -11,6 +11,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useSimilarAyahs } from '@/features/memorization/api';
 import { useRandomAyah } from '@/features/quran/api';
+import { useTheme } from '@/hooks/use-theme';
 
 import type { SimilarAyahsResponse } from '@/features/memorization/types';
 import type { RandomAyah } from '@/features/quran/types';
@@ -127,6 +128,7 @@ function QuizBody({
   data: SimilarAyahsResponse;
   onNewQuestion: () => void;
 }) {
+  const theme = useTheme();
   const [options] = useState<QuizOption[] | null>(() => buildOptions(data, question));
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
@@ -162,8 +164,8 @@ function QuizBody({
                 type="backgroundElement"
                 style={[
                   styles.optionCard,
-                  showResult && option.isCorrect && styles.correctCard,
-                  showResult && isSelected && !option.isCorrect && styles.wrongCard,
+                  showResult && option.isCorrect && { borderColor: theme.success },
+                  showResult && isSelected && !option.isCorrect && { borderColor: theme.error },
                 ]}>
                 <ArabicText style={styles.optionText}>{option.textUthmani}</ArabicText>
                 {showResult && (
@@ -232,12 +234,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     borderWidth: 2,
     borderColor: 'transparent',
-  },
-  correctCard: {
-    borderColor: '#2E8B57',
-  },
-  wrongCard: {
-    borderColor: '#C0392B',
   },
   optionText: {
     textAlign: 'center',

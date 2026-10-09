@@ -73,7 +73,7 @@ function HistoryStrip({ history }: { history: SalahLog[] }) {
                 {prayedCount}
               </ThemedText>
             </View>
-            {log.fasting && <ThemedText type="small">🌙</ThemedText>}
+            {log.fasting && <Ionicons name="moon" size={14} color={theme.accent} />}
           </View>
         );
       })}

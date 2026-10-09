@@ -18,6 +18,8 @@ export const Colors = {
     primaryMuted: '#E3F1EC',
     accent: '#C9A24B',
     border: '#E2E4E1',
+    error: '#C0392B',
+    success: '#2E8B57',
   },
   dark: {
     text: '#F2F3F1',
@@ -29,6 +31,8 @@ export const Colors = {
     primaryMuted: '#12241D',
     accent: '#D8B463',
     border: '#242B27',
+    error: '#E0574A',
+    success: '#3DAF72',
   },
 } as const;
 

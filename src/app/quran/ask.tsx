@@ -47,9 +47,7 @@ export default function AskTheQuranScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
-            Ask the Quran
-          </ThemedText>
+          <ThemedText type="title">Ask the Quran</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Searches real Ibn Kathir commentary for passages relevant to your question --
             this looks things up, it doesn&apos;t generate an answer.
@@ -166,10 +164,6 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.two,
   },
-  title: {
-    fontSize: 28,
-    lineHeight: 34,
-  },
   searchRow: {
     flexDirection: 'row',
     gap: Spacing.two,
@@ -184,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   searchButton: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingHorizontal: Spacing.four,
     justifyContent: 'center',
   },

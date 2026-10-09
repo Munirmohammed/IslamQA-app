@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -56,8 +57,9 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
           <Pressable hitSlop={8}>
             {({ pressed }) => (
               <View style={[styles.micBadge, { opacity: pressed ? 0.6 : 1 }]}>
+                <Ionicons name="mic-outline" size={14} color={theme.primary} />
                 <ThemedText type="small" themeColor="primary">
-                  🎙 Check my recitation
+                  Check my recitation
                 </ThemedText>
               </View>
             )}
@@ -105,12 +107,14 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
               })
             }>
             {({ pressed }) => (
-              <ThemedText
-                type="small"
-                themeColor="primary"
-                style={{ opacity: pressed || addToMemorization.isPending ? 0.6 : 1 }}>
-                {addToMemorization.isSuccess ? 'Added to Hifz ✓' : 'Add to Hifz'}
-              </ThemedText>
+              <View style={[styles.addToHifzRow, { opacity: pressed || addToMemorization.isPending ? 0.6 : 1 }]}>
+                {addToMemorization.isSuccess && (
+                  <Ionicons name="checkmark-circle" size={14} color={theme.primary} />
+                )}
+                <ThemedText type="small" themeColor="primary">
+                  {addToMemorization.isSuccess ? 'Added to Hifz' : 'Add to Hifz'}
+                </ThemedText>
+              </View>
             )}
           </Pressable>
         )}
@@ -172,6 +176,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   micBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: 4,
     paddingHorizontal: 8,
   },
@@ -181,6 +188,11 @@ const styles = StyleSheet.create({
   },
   translation: {
     textAlign: 'left',
+  },
+  addToHifzRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   actionsRow: {
     flexDirection: 'row',

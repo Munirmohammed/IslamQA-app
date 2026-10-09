@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useDueCards, useReviewCard } from '@/features/memorization/api';
+import { useTheme } from '@/hooks/use-theme';
 
 import type { DueCard } from '@/features/memorization/types';
 
@@ -23,6 +25,7 @@ const GRADES: { label: string; quality: number }[] = [
 ];
 
 export default function HifzReviewScreen() {
+  const theme = useTheme();
   const { data: dueCards, isLoading, error } = useDueCards();
   const review = useReviewCard();
 
@@ -32,26 +35,30 @@ export default function HifzReviewScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="title" style={styles.title}>
-            Hifz
-          </ThemedText>
+          <ThemedText type="title">Hifz</ThemedText>
 
           <View style={styles.hubLinks}>
             <Link href="/hifz/garden" asChild>
               <Pressable style={styles.hubLink}>
                 {({ pressed }) => (
-                  <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
-                    🌱 Garden
-                  </ThemedText>
+                  <View style={[styles.hubLinkInner, pressed && styles.pressed]}>
+                    <Ionicons name="leaf-outline" size={16} color={theme.primary} />
+                    <ThemedText type="small" themeColor="primary">
+                      Garden
+                    </ThemedText>
+                  </View>
                 )}
               </Pressable>
             </Link>
             <Link href="/hifz/coach" asChild>
               <Pressable style={styles.hubLink}>
                 {({ pressed }) => (
-                  <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
-                    Tajweed Coach
-                  </ThemedText>
+                  <View style={[styles.hubLinkInner, pressed && styles.pressed]}>
+                    <Ionicons name="school-outline" size={16} color={theme.primary} />
+                    <ThemedText type="small" themeColor="primary">
+                      Tajweed Coach
+                    </ThemedText>
+                  </View>
                 )}
               </Pressable>
             </Link>
@@ -143,16 +150,17 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
   hubLinks: {
     flexDirection: 'row',
     gap: Spacing.four,
   },
   hubLink: {
     flex: 1,
+  },
+  hubLinkInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.half,
   },
   pressed: {
     opacity: 0.6,

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useEffect, useRef, useState } from 'react';
@@ -13,6 +14,7 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useLogProgress } from '@/features/gamification/api';
 import { useRecitationCheck } from '@/features/recitation/api';
 import { useSurah } from '@/features/quran/api';
+import { useTheme } from '@/hooks/use-theme';
 
 /**
  * Two modes, one screen:
@@ -23,6 +25,7 @@ import { useSurah } from '@/features/quran/api';
  *   specific ayah, checked directly against it.
  */
 export default function PracticeScreen() {
+  const theme = useTheme();
   const params = useLocalSearchParams<{ surah?: string; ayah?: string; surahNameEn?: string }>();
   const presetSurah = params.surah ? Number(params.surah) : undefined;
   const presetAyah = params.ayah ? Number(params.ayah) : undefined;
@@ -120,7 +123,7 @@ export default function PracticeScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
+        <ThemedText type="title">
           {sessionActive
             ? `${presetSurahName ?? 'Surah ' + presetSurah} ${presetSurah}:${currentAyah}`
             : presetSurah && presetAyah
@@ -166,16 +169,27 @@ export default function PracticeScreen() {
         )}
 
         {check.isError && (
-          <ThemedText style={[styles.centered, styles.error]}>{check.error.message}</ThemedText>
+          <ThemedText themeColor="error" style={styles.centered}>
+            {check.error.message}
+          </ThemedText>
         )}
 
         {check.data && (
           <ScrollView style={styles.resultScroll} contentContainerStyle={styles.resultContent}>
             <ThemedView type="backgroundElement" style={styles.resultCard}>
-              <ThemedText type="smallBold">
-                {check.data.surah_name_en} {check.data.surah_number}:{check.data.ayah_number}
-                {check.data.is_correct ? '  ✓ Correct' : ''}
-              </ThemedText>
+              <View style={styles.resultHeader}>
+                <ThemedText type="smallBold">
+                  {check.data.surah_name_en} {check.data.surah_number}:{check.data.ayah_number}
+                </ThemedText>
+                {check.data.is_correct && (
+                  <View style={styles.resultCorrectBadge}>
+                    <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
+                    <ThemedText type="small" themeColor="primary">
+                      Correct
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
 
               <MistakeHighlightedText
                 textUthmani={check.data.text_uthmani}
@@ -240,19 +254,12 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: BottomTabInset + Spacing.three,
   },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
   recordArea: {
     alignItems: 'center',
     paddingVertical: Spacing.five,
   },
   centered: {
     textAlign: 'center',
-  },
-  error: {
-    color: '#C0392B',
   },
   resultScroll: {
     flex: 1,
@@ -265,6 +272,16 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.three,
   },
+  resultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resultCorrectBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   sessionActions: {
     flexDirection: 'row',
     gap: Spacing.two,
@@ -273,7 +290,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sessionButton: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

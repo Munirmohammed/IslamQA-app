@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -18,9 +19,14 @@ export function KhatmahProgressCard({ progress }: { progress: KhatmahProgress })
         {({ pressed }) => (
           <ThemedView type="backgroundElement" style={[styles.card, pressed && styles.pressed]}>
             <View style={styles.header}>
-              <ThemedText type="smallBold">
-                {progress.completed_at ? 'Khatmah complete ✓' : 'Khatmah progress'}
-              </ThemedText>
+              <View style={styles.titleRow}>
+                {progress.completed_at && (
+                  <Ionicons name="checkmark-circle" size={16} color={theme.accent} />
+                )}
+                <ThemedText type="smallBold" themeColor={progress.completed_at ? 'accent' : 'text'}>
+                  {progress.completed_at ? 'Khatmah complete' : 'Khatmah progress'}
+                </ThemedText>
+              </View>
               <ThemedText type="small" themeColor="textSecondary">
                 {percent}%
               </ThemedText>
@@ -52,6 +58,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   barTrack: {
     height: 10,

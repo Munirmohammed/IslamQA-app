@@ -20,9 +20,7 @@ export default function HalaqaScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
-          <ThemedText type="title" style={styles.title}>
-            Community
-          </ThemedText>
+          <ThemedText type="title">Community</ThemedText>
 
           <Link href="/community/leaderboard" asChild>
             <Pressable>
@@ -126,7 +124,7 @@ function CreateHalaqaForm() {
         </ThemedText>
       )}
       {createHalaqa.isError && (
-        <ThemedText type="small" style={styles.error}>
+        <ThemedText type="small" themeColor="error">
           {createHalaqa.error.message}
         </ThemedText>
       )}
@@ -169,7 +167,7 @@ function JoinHalaqaForm() {
         </ThemedText>
       )}
       {joinHalaqa.isError && (
-        <ThemedText type="small" style={styles.error}>
+        <ThemedText type="small" themeColor="error">
           {joinHalaqa.error.message}
         </ThemedText>
       )}
@@ -203,10 +201,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four,
     gap: Spacing.four,
   },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
   section: {
     gap: Spacing.two,
   },
@@ -231,14 +225,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   formButton: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },
   pressed: {
     opacity: 0.6,
-  },
-  error: {
-    color: '#C0392B',
   },
 });

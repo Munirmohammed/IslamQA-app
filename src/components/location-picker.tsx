@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useRequestLocation } from '@/hooks/use-request-location';
+import { useTheme } from '@/hooks/use-theme';
 import { WORLD_CITIES } from '@/lib/world-cities';
 import { useLocationStore } from '@/stores/location-store';
 
@@ -14,6 +16,7 @@ import { useLocationStore } from '@/stores/location-store';
  * fallback city list) so declining location permission never dead-ends
  * either feature. */
 export function LocationPicker() {
+  const theme = useTheme();
   const latitude = useLocationStore((s) => s.latitude);
   const source = useLocationStore((s) => s.source);
   const label = useLocationStore((s) => s.label);
@@ -27,9 +30,12 @@ export function LocationPicker() {
       <Pressable onPress={() => setExpanded(true)}>
         {({ pressed }) => (
           <View style={[styles.summaryRow, pressed && styles.pressed]}>
-            <ThemedText type="small" themeColor="textSecondary">
-              📍 {source === 'gps' ? 'Using your current location' : label}
-            </ThemedText>
+            <View style={styles.summaryLabel}>
+              <Ionicons name="location-outline" size={14} color={theme.textSecondary} />
+              <ThemedText type="small" themeColor="textSecondary">
+                {source === 'gps' ? 'Using your current location' : label}
+              </ThemedText>
+            </View>
             <ThemedText type="small" themeColor="primary">
               Change
             </ThemedText>
@@ -62,7 +68,7 @@ export function LocationPicker() {
       </Pressable>
 
       {error && (
-        <ThemedText type="small" style={styles.error}>
+        <ThemedText type="small" themeColor="error" style={styles.errorText}>
           {error}
         </ThemedText>
       )}
@@ -107,15 +113,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },
   pressed: {
     opacity: 0.6,
   },
-  error: {
-    color: '#C0392B',
+  errorText: {
     textAlign: 'center',
   },
   cityList: {
@@ -135,5 +140,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  summaryLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

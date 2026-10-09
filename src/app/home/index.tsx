@@ -20,9 +20,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          Assalamu Alaikum{me ? `, ${me.username}` : ''}
-        </ThemedText>
+        <ThemedText type="title">Assalamu Alaikum{me ? `, ${me.username}` : ''}</ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.subtitle}>
           Your Quran companion -- recitation, memorization, and tafsir, all in one place.
         </ThemedText>
@@ -105,10 +103,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     paddingBottom: BottomTabInset + Spacing.three,
-  },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
   },
   subtitle: {
     marginBottom: Spacing.three,

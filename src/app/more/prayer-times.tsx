@@ -32,9 +32,7 @@ export default function PrayerTimesScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="title" style={styles.title}>
-            Prayer Times
-          </ThemedText>
+          <ThemedText type="title">Prayer Times</ThemedText>
 
           <LocationPicker />
 
@@ -86,10 +84,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.six,
     paddingBottom: Spacing.six,
     gap: Spacing.four,
-  },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
   },
   list: {
     gap: Spacing.two,

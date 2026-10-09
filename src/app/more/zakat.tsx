@@ -75,6 +75,7 @@ function NumberField({
 }
 
 export default function ZakatScreen() {
+  const theme = useTheme();
   const [values, setValues] = useState(INITIAL_VALUES);
 
   const parsed = {
@@ -146,7 +147,7 @@ export default function ZakatScreen() {
               <ThemedText themeColor="textSecondary">Net zakatable wealth</ThemedText>
               <ThemedText>{result.netWealth.toLocaleString()}</ThemedText>
             </View>
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
             {result.meetsNisab ? (
               <View style={styles.resultRow}>
                 <ThemedText type="smallBold">Zakat due (2.5%)</ThemedText>
@@ -207,7 +208,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(128,128,128,0.2)',
     marginVertical: Spacing.two,
   },
   zakatAmount: {

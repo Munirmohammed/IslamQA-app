@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useStudentSessions } from '@/features/halaqa/api';
+import { useTheme } from '@/hooks/use-theme';
 
 import type { StudentSession } from '@/features/halaqa/types';
 
@@ -44,15 +46,25 @@ export default function HalaqaStudentScreen() {
 }
 
 function SessionCard({ session }: { session: StudentSession }) {
+  const theme = useTheme();
   return (
     <ThemedView type="backgroundElement" style={styles.card}>
       <View style={styles.cardHeader}>
         <ThemedText type="smallBold">
           {session.surah_number}:{session.ayah_number}
         </ThemedText>
-        <ThemedText type="small" themeColor={session.is_correct ? 'primary' : 'textSecondary'}>
-          {session.is_correct ? '✓ Correct' : `${session.mistake_count} mistake${session.mistake_count === 1 ? '' : 's'}`}
-        </ThemedText>
+        {session.is_correct ? (
+          <View style={styles.correctBadge}>
+            <Ionicons name="checkmark-circle" size={14} color={theme.primary} />
+            <ThemedText type="small" themeColor="primary">
+              Correct
+            </ThemedText>
+          </View>
+        ) : (
+          <ThemedText type="small" themeColor="textSecondary">
+            {session.mistake_count} mistake{session.mistake_count === 1 ? '' : 's'}
+          </ThemedText>
+        )}
       </View>
 
       <ThemedText type="small" themeColor="textSecondary">
@@ -66,7 +78,7 @@ function SessionCard({ session }: { session: StudentSession }) {
       ))}
 
       {session.is_duplicate_submission && (
-        <ThemedText type="small" style={styles.flag}>
+        <ThemedText type="small" themeColor="error">
           Flagged: same audio submitted by another account
         </ThemedText>
       )}
@@ -99,7 +111,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  flag: {
-    color: '#C0392B',
+  correctBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

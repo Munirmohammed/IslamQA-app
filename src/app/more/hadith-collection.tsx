@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   pagerButtonInner: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
   },

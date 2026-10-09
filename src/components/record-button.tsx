@@ -60,7 +60,7 @@ export function RecordButton({ onRecorded, disabled }: RecordButtonProps) {
             style={[
               styles.button,
               {
-                backgroundColor: recorderState.isRecording ? '#C0392B' : theme.primary,
+                backgroundColor: recorderState.isRecording ? theme.error : theme.primary,
                 opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
               },
             ]}>
@@ -82,7 +82,7 @@ export function RecordButton({ onRecorded, disabled }: RecordButtonProps) {
       </ThemedText>
 
       {permissionDenied && (
-        <ThemedText type="small" style={styles.error}>
+        <ThemedText type="small" themeColor="error" style={styles.errorText}>
           Microphone permission is required to check your recitation.
         </ThemedText>
       )}
@@ -116,8 +116,7 @@ const styles = StyleSheet.create({
   label: {
     textAlign: 'center',
   },
-  error: {
-    color: '#C0392B',
+  errorText: {
     textAlign: 'center',
   },
 });

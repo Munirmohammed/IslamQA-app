@@ -55,7 +55,7 @@ export function MistakeHighlightedText({ textUthmani, mistakes }: MistakeHighlig
               style={
                 mistake.type === 'missed'
                   ? { color: theme.textSecondary, textDecorationLine: 'line-through' }
-                  : { color: '#C0392B' }
+                  : { color: theme.error }
               }>
               {word + (isLast ? '' : ' ')}
             </Text>

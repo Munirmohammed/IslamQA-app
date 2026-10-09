@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,9 +40,12 @@ export default function KhatmahScreen() {
                   ayahs read
                 </ThemedText>
                 {progress.completed_at && (
-                  <ThemedText type="smallBold" themeColor="primary" style={styles.completeBadge}>
-                    {'Khatmah complete ✓'}
-                  </ThemedText>
+                  <View style={styles.completeBadge}>
+                    <Ionicons name="checkmark-circle" size={16} color={theme.accent} />
+                    <ThemedText type="smallBold" themeColor="accent">
+                      Khatmah complete
+                    </ThemedText>
+                  </View>
                 )}
               </ThemedView>
 
@@ -123,6 +127,9 @@ const styles = StyleSheet.create({
     lineHeight: 44,
   },
   completeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.half,
     marginTop: Spacing.two,
   },
   barTrack: {
@@ -138,7 +145,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

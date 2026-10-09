@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
@@ -78,9 +79,11 @@ function DownloadBadge({ surahNumber }: { surahNumber: number }) {
         }
       }}
       style={styles.downloadBadge}>
-      <ThemedText type="small" themeColor={isDownloaded ? 'primary' : 'textSecondary'}>
-        {isDownloaded ? '✓' : '⬇'}
-      </ThemedText>
+      <Ionicons
+        name={isDownloaded ? 'checkmark-circle' : 'download-outline'}
+        size={20}
+        color={isDownloaded ? theme.primary : theme.textSecondary}
+      />
     </Pressable>
   );
 }

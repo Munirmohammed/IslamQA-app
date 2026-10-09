@@ -1,8 +1,9 @@
-import { Link } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FeatureCard } from '@/components/feature-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -10,73 +11,23 @@ import { useLogin, useLogout, useMe, useRegister } from '@/features/auth/api';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
 
+const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; description: string; href: string }[] = [
+  { icon: 'time-outline', label: 'Prayer Times', description: 'Today’s five prayers, by your location', href: '/more/prayer-times' },
+  { icon: 'checkmark-circle-outline', label: 'Salah & Fasting Tracker', description: 'Daily checklist and weekly history', href: '/more/salah-tracker' },
+  { icon: 'compass-outline', label: 'Qibla Direction', description: 'Compass pointing toward the Kaaba', href: '/more/qibla' },
+  { icon: 'calendar-outline', label: 'Islamic Calendar', description: 'Hijri date and Ramadan countdown', href: '/more/calendar' },
+  { icon: 'flower-outline', label: 'Dua & Azkar', description: 'Morning, evening, and daily supplications', href: '/more/azkar' },
+  { icon: 'book-outline', label: 'Hadith', description: 'Browse the 10 major collections', href: '/more/hadith' },
+  { icon: 'cash-outline', label: 'Zakat Calculator', description: 'Work out what you owe this year', href: '/more/zakat' },
+];
+
 function IslamicTools() {
   return (
     <View style={styles.toolsSection}>
       <ThemedText type="smallBold">Islamic Tools</ThemedText>
-      <Link href="/more/prayer-times" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>🕌 Prayer Times</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/salah-tracker" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>☑️ Salah & Fasting Tracker</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/qibla" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>🧭 Qibla Direction</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/calendar" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>📅 Islamic Calendar</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/azkar" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>📿 Dua &amp; Azkar</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/hadith" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>📖 Hadith</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
-      <Link href="/more/zakat" asChild>
-        <Pressable>
-          {({ pressed }) => (
-            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
-              <ThemedText>💰 Zakat Calculator</ThemedText>
-            </ThemedView>
-          )}
-        </Pressable>
-      </Link>
+      {TOOLS.map((tool) => (
+        <FeatureCard key={tool.href} {...tool} />
+      ))}
     </View>
   );
 }
@@ -139,7 +90,7 @@ function AuthForm() {
       />
 
       {errorMessage && (
-        <ThemedText type="small" style={styles.error}>
+        <ThemedText type="small" themeColor="error">
           {errorMessage}
         </ThemedText>
       )}
@@ -192,9 +143,7 @@ export default function MoreScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="title" style={styles.title}>
-            More
-          </ThemedText>
+          <ThemedText type="title">More</ThemedText>
           <IslamicTools />
           {accessToken ? <ProfileDetails /> : <AuthForm />}
         </ScrollView>
@@ -219,10 +168,6 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: BottomTabInset + Spacing.three,
   },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
   card: {
     borderRadius: Spacing.three,
     padding: Spacing.four,
@@ -230,10 +175,6 @@ const styles = StyleSheet.create({
   },
   toolsSection: {
     gap: Spacing.two,
-  },
-  toolRow: {
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
   },
   input: {
     borderWidth: 1,
@@ -243,7 +184,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   submitButton: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },
@@ -252,8 +193,5 @@ const styles = StyleSheet.create({
   },
   switchModeText: {
     textAlign: 'center',
-  },
-  error: {
-    color: '#C0392B',
   },
 });

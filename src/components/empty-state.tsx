@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   actionButton: {
-    borderRadius: Spacing.two,
+    borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.five,
   },

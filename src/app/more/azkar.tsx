@@ -50,8 +50,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.six,
   },
   title: {
-    fontSize: 32,
-    lineHeight: 38,
     paddingHorizontal: Spacing.four,
     marginBottom: Spacing.three,
   },

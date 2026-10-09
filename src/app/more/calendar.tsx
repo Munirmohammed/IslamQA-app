@@ -33,9 +33,7 @@ export default function CalendarScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ThemedText type="title" style={styles.title}>
-            Islamic Calendar
-          </ThemedText>
+          <ThemedText type="title">Islamic Calendar</ThemedText>
 
           <ThemedView type="backgroundElement" style={styles.card}>
             <ThemedText type="title" style={styles.hijriDate}>
@@ -87,10 +85,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.six,
     paddingBottom: Spacing.six,
     gap: Spacing.four,
-  },
-  title: {
-    fontSize: 32,
-    lineHeight: 38,
   },
   card: {
     borderRadius: Spacing.three,

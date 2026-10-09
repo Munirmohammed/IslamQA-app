@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Link, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -10,13 +11,16 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useSurahs } from '@/features/quran/api';
+import { useTheme } from '@/hooks/use-theme';
 
-function QuickAction({ href, label }: { href: Href; label: string }) {
+function QuickAction({ href, icon, label }: { href: Href; icon: keyof typeof Ionicons.glyphMap; label: string }) {
+  const theme = useTheme();
   return (
     <Link href={href} asChild>
       <Pressable style={{ flex: 1 }}>
         {({ pressed }) => (
           <ThemedView type="primaryMuted" style={[styles.quickAction, pressed && styles.quickActionPressed]}>
+            <Ionicons name={icon} size={18} color={theme.primary} />
             <ThemedText type="smallBold" themeColor="primary">
               {label}
             </ThemedText>
@@ -34,9 +38,9 @@ export default function SurahListScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <View style={styles.quickActions}>
-          <QuickAction href="/quran/practice" label="🎙 Tasmeea" />
-          <QuickAction href="/quran/ask" label="Ask the Quran" />
-          <QuickAction href="/quran/quiz" label="Random Quiz" />
+          <QuickAction href="/quran/practice" icon="mic-outline" label="Tasmeea" />
+          <QuickAction href="/quran/ask" icon="help-circle-outline" label="Ask the Quran" />
+          <QuickAction href="/quran/quiz" icon="shuffle-outline" label="Random Quiz" />
         </View>
 
         {isLoading && (
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     paddingVertical: Spacing.three,
     alignItems: 'center',
+    gap: Spacing.half,
   },
   quickActionPressed: {
     opacity: 0.7,
