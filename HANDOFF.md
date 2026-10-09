@@ -80,12 +80,34 @@ padding.
 > tracker** (`app/services/salah_service.py`, `src/app/more/salah-
 > tracker.tsx`), a **zakat calculator** (`src/app/more/zakat.tsx`, pure
 > client-side, no backend), and a **qibla map view** alongside the
-> compass. Full plan and rationale:
-> `C:\Users\yeabs\.claude\plans\wild-napping-sonnet.md`. All of it is
-> committed, backend-tested (262 tests passing as of Phase D), and
-> web-harness-verified; **none of Phase D has an on-device confirmation
-> pass yet** — that's the next most valuable thing to do, same caveat
-> this file already made about the earlier nav restructure below.
+> compass.
+>
+> Phase D then ran on the user's actual phone for the first time, and the
+> reaction was sharply negative despite every feature working: the app
+> "feels empty... like a demo app for students." A 3-agent research pass
+> (one benchmarking Muslim Pro/Quran.com's real UI, one auditing this
+> codebase for scroll bugs and visual inconsistency, one mapping feature
+> placement) confirmed concrete, non-subjective problems, not just taste:
+> Home was a title+subtitle+button when logged out; several screens had
+> genuine content-cutoff scroll bugs (not just the qibla one); button
+> corner radius, text colors, and icon usage were inconsistent app-wide;
+> and the qibla compass was literally a 6x90px bar in an empty ring. That
+> became **"Phase E"**: E0 fixed the scroll bugs, E1 built a real
+> design-token/FeatureCard foundation and swept the inconsistencies, E2
+> rebuilt Home as an actual dashboard (continue-reading card, a 6-tile
+> feature grid replacing the buried More-tab list, proper loading/empty
+> states), E3 rebuilt the qibla compass as a real instrument (dial, tick
+> marks, cardinal labels, alignment feedback, smooth animation), and
+> E4/E5 finished the consistency sweep. Full plan and rationale for both
+> phases: `C:\Users\yeabs\.claude\plans\wild-napping-sonnet.md` (gets
+> overwritten per phase -- don't assume Phase D's content is still there).
+> All of it is committed, backend-tested (266 tests passing as of Phase
+> E), and web-harness-verified; **none of Phase D or E has an on-device
+> confirmation pass yet** — that's the next most valuable thing to do,
+> same caveat this file already made about the earlier nav restructure
+> below. In particular, the qibla "Facing Qibla" alignment state and the
+> live rotating-arrow animation can only be genuinely verified with a
+> real magnetometer, not the web harness (heading is always null there).
 
 - Backend is **running locally**, port 8000, from `IslamQA\.venv` (the
   project's dedicated venv — see §4 item 14 for a real gotcha about this).
