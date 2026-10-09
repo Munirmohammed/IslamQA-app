@@ -68,6 +68,15 @@ function IslamicTools() {
           )}
         </Pressable>
       </Link>
+      <Link href="/more/zakat" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>💰 Zakat Calculator</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
     </View>
   );
 }
