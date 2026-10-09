@@ -64,6 +64,29 @@ padding.
 
 ## 1. Current State (exactly where things stopped)
 
+> **Everything below this note predates a later session's work and is
+> stale in places** (flagged inline where caught, but not exhaustively).
+> That later session: fixed real on-device bugs found in a first phone
+> test (token refresh, an Al-Fatiha BOM bug, Whisper hallucination on
+> short clips), restructured the nav from 4 tabs to 5 (Home/Quran/Hifz/
+> Community/More), expanded into a full Islamic-lifestyle app (prayer
+> times, qibla, Dua & Azkar, hadith browser, Hijri calendar), then — after
+> a genuine competitive audit against Tarteel/Quran.com/Muslim Pro/
+> Quranly — shipped a "Phase D": **multi-reciter audio playback** (12
+> reciters via api.quran.com, `app/services/audio_service.py` +
+> `src/features/audio/`), **playback speed control + A/B repeat drilling**,
+> **offline audio downloads**, **tappable word-by-word translation**
+> (`app/services/word_by_word_service.py`), a **daily salah/fasting
+> tracker** (`app/services/salah_service.py`, `src/app/more/salah-
+> tracker.tsx`), a **zakat calculator** (`src/app/more/zakat.tsx`, pure
+> client-side, no backend), and a **qibla map view** alongside the
+> compass. Full plan and rationale:
+> `C:\Users\yeabs\.claude\plans\wild-napping-sonnet.md`. All of it is
+> committed, backend-tested (262 tests passing as of Phase D), and
+> web-harness-verified; **none of Phase D has an on-device confirmation
+> pass yet** — that's the next most valuable thing to do, same caveat
+> this file already made about the earlier nav restructure below.
+
 - Backend is **running locally**, port 8000, from `IslamQA\.venv` (the
   project's dedicated venv — see §4 item 14 for a real gotcha about this).
 - **Network has changed multiple times this session (again)** — don't
@@ -729,10 +752,10 @@ left falls into two different buckets, and it matters which:
   has Arabic + English only, no romanized transliteration; would need a
   separate source if that's wanted (none was found verified-licensed
   during this batch's research).
-- **A reciter audio button on individual duas/hadith** — out of scope for
-  this batch (no audio-serving infra for *any* content yet, see F7's own
-  note on this), but would be a natural fast-follow once that infra
-  exists for anything.
+- **A reciter audio button on individual duas/hadith** — multi-reciter
+  audio infra now exists (api.quran.com integration, see the "Phase D"
+  update below); this would reuse `app/services/audio_service.py`'s
+  per-ayah URL resolution, just not built for dua/hadith text yet.
 
 ### Genuinely blocked — needs the user, not more Claude Code time
 - **F8 (OS-native integration: widgets, Live Activity, Siri shortcuts)**
@@ -763,10 +786,11 @@ left falls into two different buckets, and it matters which:
 - **Camera-to-ayah lookup** (§7 below, feature catalog) — needs
   `react-native-vision-camera`, a native module not included in Expo Go;
   needs a dev build same as F8.
-- **Multiple qiraat, word-by-word tap-to-translate, multi-reciter audio
-  library** (§7 below) — each needs new corpus data the backend doesn't
-  have yet, not a frontend blocker but a backend research/ingestion task
-  nobody has started.
+- **Multiple qiraat, letter-level/makhraj tajweed scoring** (§7 below) —
+  each needs new corpus data or ML models the backend doesn't have yet.
+  Word-by-word translation and multi-reciter audio, previously listed
+  here as blocked for the same reason, are no longer blocked — see the
+  "Phase D" update below.
 
 ---
 
