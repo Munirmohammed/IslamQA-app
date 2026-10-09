@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -9,7 +9,13 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useReciterStore } from '@/stores/reciter-store';
 
-import { useReciters, useSurahAudioUrl } from './api';
+import {
+  useDownloadSurahAudio,
+  useIsSurahAudioDownloaded,
+  useReciters,
+  useRemoveDownloadedSurahAudio,
+  useSurahAudioUrl,
+} from './api';
 import { DEFAULT_RECITER_ID } from './constants';
 import { RangeRepeat } from './range-repeat';
 import { ReciterRow } from './reciter-row';
@@ -79,6 +85,8 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
             </ThemedText>
           </Pressable>
         </View>
+
+        <DownloadAudioBadge surahNumber={surahNumber} reciterId={reciterId} />
       </View>
 
       <SpeedControl speed={speed} onChange={setSpeed} />
@@ -104,6 +112,46 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
   );
 }
 
+interface DownloadAudioBadgeProps {
+  surahNumber: number;
+  reciterId: number;
+}
+
+/** Downloads this reciter's full-surah audio file for offline playback --
+ * the same ⬇/✓ badge convention SurahListItem already uses for offline
+ * text packs. A player pointed at the (now-local) file keeps working with
+ * no further changes: useSurahAudioUrl checks for a downloaded copy
+ * before ever touching the network. */
+function DownloadAudioBadge({ surahNumber, reciterId }: DownloadAudioBadgeProps) {
+  const theme = useTheme();
+  const isDownloaded = useIsSurahAudioDownloaded(reciterId, surahNumber);
+  const download = useDownloadSurahAudio();
+  const remove = useRemoveDownloadedSurahAudio();
+
+  if (download.isPending) {
+    return <ActivityIndicator size="small" color={theme.textSecondary} style={styles.downloadBadge} />;
+  }
+
+  return (
+    <Pressable
+      hitSlop={10}
+      onPress={() => {
+        if (isDownloaded) {
+          remove.mutate({ surah: surahNumber, reciterId });
+        } else {
+          download.mutate({ surah: surahNumber, reciterId });
+        }
+      }}
+      style={styles.downloadBadge}>
+      <Ionicons
+        name={isDownloaded ? 'checkmark-circle' : 'download-outline'}
+        size={20}
+        color={isDownloaded ? theme.primary : theme.textSecondary}
+      />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     gap: Spacing.two,
@@ -124,6 +172,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
+    flex: 1,
     gap: 2,
   },
   pickerList: {
@@ -131,5 +180,10 @@ const styles = StyleSheet.create({
   },
   pickerListContent: {
     gap: Spacing.two,
+  },
+  downloadBadge: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
