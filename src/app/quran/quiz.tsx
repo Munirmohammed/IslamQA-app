@@ -4,6 +4,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ArabicText } from '@/components/arabic-text';
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -86,16 +88,10 @@ export default function MutashabihatQuizScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: scopeSurah ? 'Surah Quiz' : 'Random Quiz' }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        {loading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Finding a question…
-          </ThemedText>
-        )}
+        {loading && <Skeleton height={120} borderRadius={Spacing.three} />}
 
         {failed && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load a quiz question.
-          </ThemedText>
+          <EmptyState icon="alert-circle-outline" message="Couldn't load a quiz question." />
         )}
 
         {question && similarData && (
@@ -135,9 +131,10 @@ function QuizBody({
   if (options === null) {
     return (
       <>
-        <ThemedText themeColor="textSecondary" style={styles.message}>
-          No similar-sounding ayah found to quiz against this one.
-        </ThemedText>
+        <EmptyState
+          icon="help-circle-outline"
+          message="No similar-sounding ayah found to quiz against this one."
+        />
         <NewQuestionButton onPress={onNewQuestion} />
       </>
     );
@@ -220,10 +217,6 @@ const styles = StyleSheet.create({
   },
   prompt: {
     textAlign: 'center',
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
   },
   options: {
     gap: Spacing.three,

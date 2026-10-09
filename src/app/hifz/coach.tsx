@@ -2,6 +2,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ArabicText } from '@/components/arabic-text';
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -27,23 +29,17 @@ export default function TajweedCoachScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {isLoading && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Reviewing your recitation history…
-            </ThemedText>
-          )}
+          {isLoading && <Skeleton height={140} borderRadius={Spacing.three} />}
 
           {error && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Couldn&apos;t load your mistake history.
-            </ThemedText>
+            <EmptyState icon="alert-circle-outline" message="Couldn't load your mistake history." />
           )}
 
           {data && data.total_sessions === 0 && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              No recitation checks yet -- use Tasmeea or Practice to get your first
-              personalized Tajweed report.
-            </ThemedText>
+            <EmptyState
+              icon="mic-outline"
+              message="No recitation checks yet -- use Tasmeea or Practice to get your first personalized Tajweed report."
+            />
           )}
 
           {data && data.total_sessions > 0 && (
@@ -166,11 +162,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     paddingBottom: Spacing.six,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
   },
   content: {
     gap: Spacing.five,

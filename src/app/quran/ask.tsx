@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { FlatList, Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -79,21 +81,20 @@ export default function AskTheQuranScreen() {
         </View>
 
         {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Searching…
-          </ThemedText>
+          <View style={styles.skeletonList}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} height={90} borderRadius={Spacing.three} />
+            ))}
+          </View>
         )}
 
-        {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t reach the server.
-          </ThemedText>
-        )}
+        {error && <EmptyState icon="cloud-offline-outline" message="Couldn't reach the server." />}
 
         {data && data.results.length === 0 && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            No tafsir passages matched that question -- try different wording.
-          </ThemedText>
+          <EmptyState
+            icon="search-outline"
+            message="No tafsir passages matched that question -- try different wording."
+          />
         )}
 
         {data && data.results.length > 0 && (
@@ -190,9 +191,8 @@ const styles = StyleSheet.create({
   ctaPressed: {
     opacity: 0.6,
   },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
+  skeletonList: {
+    gap: Spacing.two,
   },
   listContent: {
     paddingBottom: Spacing.four,

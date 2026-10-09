@@ -2,6 +2,8 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -17,22 +19,14 @@ export default function HalaqaStudentScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: params.username }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading sessions…
-          </ThemedText>
-        )}
+        {isLoading && <Skeleton height={100} borderRadius={Spacing.three} />}
 
         {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load this student&apos;s sessions.
-          </ThemedText>
+          <EmptyState icon="alert-circle-outline" message="Couldn't load this student's sessions." />
         )}
 
         {data && data.length === 0 && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            No recitation checks recorded yet.
-          </ThemedText>
+          <EmptyState icon="mic-outline" message="No recitation checks recorded yet." />
         )}
 
         {data && data.length > 0 && (
@@ -88,10 +82,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
   },
   listContent: {
     paddingBottom: Spacing.four,

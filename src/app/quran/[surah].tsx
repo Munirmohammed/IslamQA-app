@@ -1,10 +1,12 @@
 import { FlashList } from '@shopify/flash-list';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AyahCard } from '@/components/ayah-card';
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -55,16 +57,14 @@ export default function SurahDetailScreen() {
       />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading surah…
-          </ThemedText>
+          <View style={styles.skeletonList}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} height={100} borderRadius={Spacing.three} />
+            ))}
+          </View>
         )}
 
-        {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load this surah.
-          </ThemedText>
-        )}
+        {error && <EmptyState icon="cloud-offline-outline" message="Couldn't load this surah." />}
 
         {surah && (
           <FlashList
@@ -87,10 +87,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
+  skeletonList: {
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
   },
   listContent: {
     paddingHorizontal: Spacing.three,

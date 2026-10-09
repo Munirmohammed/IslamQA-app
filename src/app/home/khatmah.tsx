@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -19,16 +21,10 @@ export default function KhatmahScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading your khatmah…
-          </ThemedText>
-        )}
+        {isLoading && <Skeleton height={140} borderRadius={Spacing.three} />}
 
         {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load your khatmah progress.
-          </ThemedText>
+          <EmptyState icon="alert-circle-outline" message="Couldn't load your khatmah progress." />
         )}
 
         {progress && (
@@ -55,7 +51,7 @@ export default function KhatmahScreen() {
             </View>
 
             <ThemedText themeColor="textSecondary" style={styles.explainer}>
-              Opening a surah in the Read tab marks its ayahs as read toward this khatmah.
+              Opening a surah in the Quran tab marks its ayahs as read toward this khatmah.
               Re-reading an ayah you&apos;ve already covered won&apos;t inflate your progress.
             </ThemedText>
 
@@ -107,11 +103,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     gap: Spacing.four,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
   },
   content: {
     gap: Spacing.four,

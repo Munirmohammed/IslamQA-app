@@ -2,6 +2,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -30,16 +32,10 @@ export default function TafsirScreen() {
             {data && data.ayah_to > data.ayah_from ? `-${data.ayah_to}` : ''}
           </ThemedText>
 
-          {isLoading && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Loading tafsir…
-            </ThemedText>
-          )}
+          {isLoading && <Skeleton height={120} borderRadius={Spacing.three} />}
 
           {error && (
-            <ThemedText themeColor="textSecondary" style={styles.message}>
-              Couldn&apos;t load tafsir for this ayah.
-            </ThemedText>
+            <EmptyState icon="alert-circle-outline" message="Couldn't load tafsir for this ayah." />
           )}
 
           {data &&
@@ -71,10 +67,6 @@ const styles = StyleSheet.create({
   sourceLabel: {
     letterSpacing: 0.4,
     marginBottom: Spacing.two,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
   },
   paragraph: {
     lineHeight: 24,

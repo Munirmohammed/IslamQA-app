@@ -2,6 +2,8 @@ import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -28,22 +30,17 @@ export default function HalaqaRosterScreen() {
           </ThemedText>
         </Link>
 
-        {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading roster…
-          </ThemedText>
-        )}
+        {isLoading && <Skeleton height={56} borderRadius={Spacing.three} />}
 
         {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load this halaqa&apos;s roster.
-          </ThemedText>
+          <EmptyState icon="alert-circle-outline" message="Couldn't load this halaqa's roster." />
         )}
 
         {data && data.length === 0 && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            No students have joined yet -- share the join code shown on the halaqa list.
-          </ThemedText>
+          <EmptyState
+            icon="people-outline"
+            message="No students have joined yet -- share the join code shown on the halaqa list."
+          />
         )}
 
         {data &&
@@ -89,10 +86,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     gap: Spacing.two,
-  },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
   },
   leaderboardLink: {
     marginBottom: Spacing.two,

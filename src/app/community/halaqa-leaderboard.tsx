@@ -3,6 +3,8 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/empty-state';
+import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
@@ -19,21 +21,19 @@ export default function HalaqaLeaderboardScreen() {
       <Stack.Screen options={{ title: params.halaqaName || 'Leaderboard' }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {isLoading && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Loading the leaderboard…
-          </ThemedText>
+          <View style={styles.skeletonList}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <Skeleton key={i} height={56} borderRadius={Spacing.three} />
+            ))}
+          </View>
         )}
 
         {error && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            Couldn&apos;t load this halaqa&apos;s leaderboard.
-          </ThemedText>
+          <EmptyState icon="alert-circle-outline" message="Couldn't load this halaqa's leaderboard." />
         )}
 
         {data && data.entries.length === 0 && (
-          <ThemedText themeColor="textSecondary" style={styles.message}>
-            No one in this halaqa has read or recited yet.
-          </ThemedText>
+          <EmptyState icon="trophy-outline" message="No one in this halaqa has read or recited yet." />
         )}
 
         {data && data.entries.length > 0 && (
@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  message: {
-    textAlign: 'center',
-    marginTop: Spacing.six,
-    paddingHorizontal: Spacing.four,
+  skeletonList: {
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
   },
   listContent: {
     paddingHorizontal: Spacing.three,
