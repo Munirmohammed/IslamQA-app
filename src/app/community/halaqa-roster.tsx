@@ -1,5 +1,5 @@
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/empty-state';
@@ -19,34 +19,43 @@ export default function HalaqaRosterScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: params.halaqaName }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        <Link
-          href={{
-            pathname: '/community/halaqa-leaderboard',
-            params: { halaqaId: params.halaqaId, halaqaName: params.halaqaName },
-          }}
-          style={styles.leaderboardLink}>
-          <ThemedText type="small" themeColor="primary">
-            View leaderboard →
-          </ThemedText>
-        </Link>
+        <FlatList
+          data={data ?? []}
+          keyExtractor={(student) => student.student_id}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            <>
+              <Link
+                href={{
+                  pathname: '/community/halaqa-leaderboard',
+                  params: { halaqaId: params.halaqaId, halaqaName: params.halaqaName },
+                }}
+                style={styles.leaderboardLink}>
+                <ThemedText type="small" themeColor="primary">
+                  View leaderboard →
+                </ThemedText>
+              </Link>
 
-        {isLoading && <Skeleton height={56} borderRadius={Spacing.three} />}
+              {isLoading && <Skeleton height={56} borderRadius={Spacing.three} />}
 
-        {error && (
-          <EmptyState icon="alert-circle-outline" message="Couldn't load this halaqa's roster." />
-        )}
-
-        {data && data.length === 0 && (
-          <EmptyState
-            icon="people-outline"
-            message="No students have joined yet -- share the join code shown on the halaqa list."
-          />
-        )}
-
-        {data &&
-          data.map((student) => (
-            <StudentRow key={student.student_id} halaqaId={params.halaqaId} student={student} />
-          ))}
+              {error && (
+                <EmptyState icon="alert-circle-outline" message="Couldn't load this halaqa's roster." />
+              )}
+            </>
+          }
+          ListEmptyComponent={
+            !isLoading && !error ? (
+              <EmptyState
+                icon="people-outline"
+                message="No students have joined yet -- share the join code shown on the halaqa list."
+              />
+            ) : null
+          }
+          ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
+          renderItem={({ item }) => (
+            <StudentRow halaqaId={params.halaqaId} student={item} />
+          )}
+        />
       </SafeAreaView>
     </ThemedView>
   );
@@ -83,12 +92,17 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  listContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
-    gap: Spacing.two,
+    paddingBottom: Spacing.six,
   },
   leaderboardLink: {
     marginBottom: Spacing.two,
+  },
+  separator: {
+    height: Spacing.two,
   },
   row: {
     borderRadius: Spacing.three,

@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ArabicText } from '@/components/arabic-text';
@@ -31,74 +31,76 @@ export default function HifzReviewScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          Hifz
-        </ThemedText>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText type="title" style={styles.title}>
+            Hifz
+          </ThemedText>
 
-        <View style={styles.hubLinks}>
-          <Link href="/hifz/garden" asChild>
-            <Pressable style={styles.hubLink}>
-              {({ pressed }) => (
-                <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
-                  🌱 Garden
-                </ThemedText>
-              )}
-            </Pressable>
-          </Link>
-          <Link href="/hifz/coach" asChild>
-            <Pressable style={styles.hubLink}>
-              {({ pressed }) => (
-                <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
-                  Tajweed Coach
-                </ThemedText>
-              )}
-            </Pressable>
-          </Link>
-        </View>
+          <View style={styles.hubLinks}>
+            <Link href="/hifz/garden" asChild>
+              <Pressable style={styles.hubLink}>
+                {({ pressed }) => (
+                  <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
+                    🌱 Garden
+                  </ThemedText>
+                )}
+              </Pressable>
+            </Link>
+            <Link href="/hifz/coach" asChild>
+              <Pressable style={styles.hubLink}>
+                {({ pressed }) => (
+                  <ThemedText type="small" themeColor="primary" style={pressed && styles.pressed}>
+                    Tajweed Coach
+                  </ThemedText>
+                )}
+              </Pressable>
+            </Link>
+          </View>
 
-        {isLoading && <Skeleton height={120} borderRadius={Spacing.three} />}
+          {isLoading && <Skeleton height={120} borderRadius={Spacing.three} />}
 
-        {error && <EmptyState icon="alert-circle-outline" message="Couldn't load your review queue." />}
+          {error && <EmptyState icon="alert-circle-outline" message="Couldn't load your review queue." />}
 
-        {dueCards && dueCards.length === 0 && (
-          <EmptyState
-            icon="checkmark-circle-outline"
-            message="All caught up -- nothing due for review right now. Add an ayah to your memorization plan from the Quran tab."
-          />
-        )}
+          {dueCards && dueCards.length === 0 && (
+            <EmptyState
+              icon="checkmark-circle-outline"
+              message="All caught up -- nothing due for review right now. Add an ayah to your memorization plan from the Quran tab."
+            />
+          )}
 
-        {currentCard && (
-          <>
-            <ThemedText type="small" themeColor="textSecondary" style={styles.counter}>
-              {dueCards!.length} card{dueCards!.length === 1 ? '' : 's'} due
-            </ThemedText>
-
-            <ThemedView type="backgroundElement" style={styles.card}>
-              <ArabicText style={styles.ayahText}>{currentCard.text_uthmani}</ArabicText>
-              <ThemedText themeColor="textSecondary">{currentCard.translation_en}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {currentCard.surah_number}:{currentCard.ayah_number}
+          {currentCard && (
+            <>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.counter}>
+                {dueCards!.length} card{dueCards!.length === 1 ? '' : 's'} due
               </ThemedText>
-            </ThemedView>
 
-            <View style={styles.gradeRow}>
-              {GRADES.map((grade) => (
-                <GradeButton
-                  key={grade.label}
-                  label={grade.label}
-                  disabled={review.isPending}
-                  onPress={() =>
-                    review.mutate({
-                      surah: currentCard.surah_number,
-                      ayah: currentCard.ayah_number,
-                      quality: grade.quality,
-                    })
-                  }
-                />
-              ))}
-            </View>
-          </>
-        )}
+              <ThemedView type="backgroundElement" style={styles.card}>
+                <ArabicText style={styles.ayahText}>{currentCard.text_uthmani}</ArabicText>
+                <ThemedText themeColor="textSecondary">{currentCard.translation_en}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {currentCard.surah_number}:{currentCard.ayah_number}
+                </ThemedText>
+              </ThemedView>
+
+              <View style={styles.gradeRow}>
+                {GRADES.map((grade) => (
+                  <GradeButton
+                    key={grade.label}
+                    label={grade.label}
+                    disabled={review.isPending}
+                    onPress={() =>
+                      review.mutate({
+                        surah: currentCard.surah_number,
+                        ayah: currentCard.ayah_number,
+                        quality: grade.quality,
+                      })
+                    }
+                  />
+                ))}
+              </View>
+            </>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -134,8 +136,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.six,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   title: {

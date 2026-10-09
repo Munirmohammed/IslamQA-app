@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -191,11 +191,13 @@ export default function MoreScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          More
-        </ThemedText>
-        <IslamicTools />
-        {accessToken ? <ProfileDetails /> : <AuthForm />}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText type="title" style={styles.title}>
+            More
+          </ThemedText>
+          <IslamicTools />
+          {accessToken ? <ProfileDetails /> : <AuthForm />}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -207,6 +209,8 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.six,
     gap: Spacing.four,

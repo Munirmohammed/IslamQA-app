@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LocationPicker } from '@/components/location-picker';
@@ -31,34 +31,36 @@ export default function PrayerTimesScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          Prayer Times
-        </ThemedText>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText type="title" style={styles.title}>
+            Prayer Times
+          </ThemedText>
 
-        <LocationPicker />
+          <LocationPicker />
 
-        {prayers && (
-          <View style={styles.list}>
-            {prayers.map((prayer) => (
-              <ThemedView
-                key={prayer.key}
-                type="backgroundElement"
-                style={[
-                  styles.row,
-                  prayer.key === nextKey && { borderColor: theme.primary, borderWidth: 2 },
-                ]}>
-                <ThemedText type={prayer.key === nextKey ? 'smallBold' : 'default'}>
-                  {prayer.name}
-                </ThemedText>
-                <ThemedText
-                  type={prayer.key === nextKey ? 'smallBold' : 'default'}
-                  themeColor={prayer.key === nextKey ? 'primary' : 'text'}>
-                  {prayer.time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                </ThemedText>
-              </ThemedView>
-            ))}
-          </View>
-        )}
+          {prayers && (
+            <View style={styles.list}>
+              {prayers.map((prayer) => (
+                <ThemedView
+                  key={prayer.key}
+                  type="backgroundElement"
+                  style={[
+                    styles.row,
+                    prayer.key === nextKey && { borderColor: theme.primary, borderWidth: 2 },
+                  ]}>
+                  <ThemedText type={prayer.key === nextKey ? 'smallBold' : 'default'}>
+                    {prayer.name}
+                  </ThemedText>
+                  <ThemedText
+                    type={prayer.key === nextKey ? 'smallBold' : 'default'}
+                    themeColor={prayer.key === nextKey ? 'primary' : 'text'}>
+                    {prayer.time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </ThemedText>
+                </ThemedView>
+              ))}
+            </View>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -78,8 +80,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.six,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   title: {

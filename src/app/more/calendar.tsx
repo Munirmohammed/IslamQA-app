@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -32,42 +32,44 @@ export default function CalendarScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          Islamic Calendar
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.card}>
-          <ThemedText type="title" style={styles.hijriDate}>
-            {hijriToday.day} {hijriToday.monthName}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText type="title" style={styles.title}>
+            Islamic Calendar
           </ThemedText>
-          <ThemedText themeColor="textSecondary">{hijriToday.year} AH</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.gregorian}>
-            {today.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </ThemedText>
-        </ThemedView>
 
-        <ThemedView type="backgroundElement" style={styles.card}>
-          {inRamadan ? (
-            <ThemedText type="smallBold" themeColor="primary">
-              Ramadan Mubarak -- day {hijriToday.day} of Ramadan
+          <ThemedView type="backgroundElement" style={styles.card}>
+            <ThemedText type="title" style={styles.hijriDate}>
+              {hijriToday.day} {hijriToday.monthName}
             </ThemedText>
-          ) : (
-            <>
-              <ThemedText type="title" style={styles.countdownNumber}>
-                {ramadanCountdown}
-              </ThemedText>
-              <ThemedText themeColor="textSecondary">days until Ramadan</ThemedText>
-            </>
-          )}
-        </ThemedView>
+            <ThemedText themeColor="textSecondary">{hijriToday.year} AH</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.gregorian}>
+              {today.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </ThemedText>
+          </ThemedView>
 
-        <View style={styles.caveat}>
-          <ThemedText type="small" themeColor="textSecondary">
-            This Hijri date is computed arithmetically (Umm al-Qura-based), not from local moon
-            sighting -- it may be a day off from the date your local mosque or religious
-            authority announces.
-          </ThemedText>
-        </View>
+          <ThemedView type="backgroundElement" style={styles.card}>
+            {inRamadan ? (
+              <ThemedText type="smallBold" themeColor="primary">
+                Ramadan Mubarak -- day {hijriToday.day} of Ramadan
+              </ThemedText>
+            ) : (
+              <>
+                <ThemedText type="title" style={styles.countdownNumber}>
+                  {ramadanCountdown}
+                </ThemedText>
+                <ThemedText themeColor="textSecondary">days until Ramadan</ThemedText>
+              </>
+            )}
+          </ThemedView>
+
+          <View style={styles.caveat}>
+            <ThemedText type="small" themeColor="textSecondary">
+              This Hijri date is computed arithmetically (Umm al-Qura-based), not from local moon
+              sighting -- it may be a day off from the date your local mosque or religious
+              authority announces.
+            </ThemedText>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -79,8 +81,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.six,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   title: {

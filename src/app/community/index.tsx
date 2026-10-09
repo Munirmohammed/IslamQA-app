@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/empty-state';
@@ -19,7 +19,7 @@ export default function HalaqaScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content}>
           <ThemedText type="title" style={styles.title}>
             Community
           </ThemedText>
@@ -58,7 +58,7 @@ export default function HalaqaScreen() {
 
           <CreateHalaqaForm />
           <JoinHalaqaForm />
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );

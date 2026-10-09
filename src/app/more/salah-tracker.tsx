@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/empty-state';
@@ -91,7 +91,7 @@ export default function SalahTrackerScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'Salah & Fasting' }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content}>
           {!accessToken && (
             <EmptyState
               icon="log-in-outline"
@@ -141,7 +141,7 @@ export default function SalahTrackerScreen() {
               )}
             </>
           )}
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -155,9 +155,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
+    paddingBottom: Spacing.six,
     gap: Spacing.two,
   },
   skeletonList: {

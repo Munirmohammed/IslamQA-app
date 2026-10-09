@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/empty-state';
@@ -21,74 +21,76 @@ export default function KhatmahScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        {isLoading && <Skeleton height={140} borderRadius={Spacing.three} />}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {isLoading && <Skeleton height={140} borderRadius={Spacing.three} />}
 
-        {error && (
-          <EmptyState icon="alert-circle-outline" message="Couldn't load your khatmah progress." />
-        )}
+          {error && (
+            <EmptyState icon="alert-circle-outline" message="Couldn't load your khatmah progress." />
+          )}
 
-        {progress && (
-          <View style={styles.content}>
-            <ThemedView type="backgroundElement" style={styles.summaryCard}>
-              <ThemedText type="title" style={styles.summaryNumber}>
-                {percent}%
-              </ThemedText>
-              <ThemedText themeColor="textSecondary">
-                {progress.ayahs_read.toLocaleString()} of {progress.total_ayahs.toLocaleString()}{' '}
-                ayahs read
-              </ThemedText>
-              {progress.completed_at && (
-                <ThemedText type="smallBold" themeColor="primary" style={styles.completeBadge}>
-                  {'Khatmah complete ✓'}
+          {progress && (
+            <View style={styles.content}>
+              <ThemedView type="backgroundElement" style={styles.summaryCard}>
+                <ThemedText type="title" style={styles.summaryNumber}>
+                  {percent}%
                 </ThemedText>
-              )}
-            </ThemedView>
-
-            <View style={[styles.barTrack, { backgroundColor: theme.backgroundElement }]}>
-              <View
-                style={[styles.barFill, { width: `${percent}%`, backgroundColor: theme.primary }]}
-              />
-            </View>
-
-            <ThemedText themeColor="textSecondary" style={styles.explainer}>
-              Opening a surah in the Quran tab marks its ayahs as read toward this khatmah.
-              Re-reading an ayah you&apos;ve already covered won&apos;t inflate your progress.
-            </ThemedText>
-
-            {confirmingRestart ? (
-              <View style={styles.confirmRow}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.confirmText}>
-                  Start a brand-new khatmah? Your current progress stays saved in your history.
+                <ThemedText themeColor="textSecondary">
+                  {progress.ayahs_read.toLocaleString()} of {progress.total_ayahs.toLocaleString()}{' '}
+                  ayahs read
                 </ThemedText>
-                <View style={styles.confirmButtons}>
-                  <Pressable
-                    style={styles.confirmButton}
-                    onPress={() => {
-                      restart.mutate();
-                      setConfirmingRestart(false);
-                    }}>
-                    <ThemedView type="primaryMuted" style={styles.button}>
-                      <ThemedText type="smallBold" themeColor="primary">
-                        Yes, start over
-                      </ThemedText>
-                    </ThemedView>
-                  </Pressable>
-                  <Pressable style={styles.confirmButton} onPress={() => setConfirmingRestart(false)}>
-                    <ThemedView style={styles.button}>
-                      <ThemedText type="smallBold">Cancel</ThemedText>
-                    </ThemedView>
-                  </Pressable>
-                </View>
+                {progress.completed_at && (
+                  <ThemedText type="smallBold" themeColor="primary" style={styles.completeBadge}>
+                    {'Khatmah complete ✓'}
+                  </ThemedText>
+                )}
+              </ThemedView>
+
+              <View style={[styles.barTrack, { backgroundColor: theme.backgroundElement }]}>
+                <View
+                  style={[styles.barFill, { width: `${percent}%`, backgroundColor: theme.primary }]}
+                />
               </View>
-            ) : (
-              <Pressable onPress={() => setConfirmingRestart(true)}>
-                <ThemedView style={styles.button}>
-                  <ThemedText type="smallBold">Start a new khatmah</ThemedText>
-                </ThemedView>
-              </Pressable>
-            )}
-          </View>
-        )}
+
+              <ThemedText themeColor="textSecondary" style={styles.explainer}>
+                Opening a surah in the Quran tab marks its ayahs as read toward this khatmah.
+                Re-reading an ayah you&apos;ve already covered won&apos;t inflate your progress.
+              </ThemedText>
+
+              {confirmingRestart ? (
+                <View style={styles.confirmRow}>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.confirmText}>
+                    Start a brand-new khatmah? Your current progress stays saved in your history.
+                  </ThemedText>
+                  <View style={styles.confirmButtons}>
+                    <Pressable
+                      style={styles.confirmButton}
+                      onPress={() => {
+                        restart.mutate();
+                        setConfirmingRestart(false);
+                      }}>
+                      <ThemedView type="primaryMuted" style={styles.button}>
+                        <ThemedText type="smallBold" themeColor="primary">
+                          Yes, start over
+                        </ThemedText>
+                      </ThemedView>
+                    </Pressable>
+                    <Pressable style={styles.confirmButton} onPress={() => setConfirmingRestart(false)}>
+                      <ThemedView style={styles.button}>
+                        <ThemedText type="smallBold">Cancel</ThemedText>
+                      </ThemedView>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                <Pressable onPress={() => setConfirmingRestart(true)}>
+                  <ThemedView style={styles.button}>
+                    <ThemedText type="smallBold">Start a new khatmah</ThemedText>
+                  </ThemedView>
+                </Pressable>
+              )}
+            </View>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -100,8 +102,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   content: {

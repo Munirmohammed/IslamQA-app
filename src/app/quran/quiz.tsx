@@ -1,6 +1,6 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ArabicText } from '@/components/arabic-text';
@@ -88,20 +88,22 @@ export default function MutashabihatQuizScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: scopeSurah ? 'Surah Quiz' : 'Random Quiz' }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        {loading && <Skeleton height={120} borderRadius={Spacing.three} />}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {loading && <Skeleton height={120} borderRadius={Spacing.three} />}
 
-        {failed && (
-          <EmptyState icon="alert-circle-outline" message="Couldn't load a quiz question." />
-        )}
+          {failed && (
+            <EmptyState icon="alert-circle-outline" message="Couldn't load a quiz question." />
+          )}
 
-        {question && similarData && (
-          <QuizBody
-            key={`${question.surah_number}:${question.ayah_number}`}
-            question={question}
-            data={similarData}
-            onNewQuestion={askNewQuestion}
-          />
-        )}
+          {question && similarData && (
+            <QuizBody
+              key={`${question.surah_number}:${question.ayah_number}`}
+              question={question}
+              data={similarData}
+              onNewQuestion={askNewQuestion}
+            />
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -211,8 +213,11 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
+    paddingBottom: Spacing.six,
     gap: Spacing.four,
   },
   prompt: {

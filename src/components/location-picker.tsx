@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -74,7 +74,7 @@ export function LocationPicker() {
       </Pressable>
 
       {showCities && (
-        <View style={styles.cityList}>
+        <ScrollView style={styles.cityList} contentContainerStyle={styles.cityListContent} nestedScrollEnabled>
           {WORLD_CITIES.map((city) => (
             <Pressable
               key={city.name}
@@ -93,7 +93,7 @@ export function LocationPicker() {
               )}
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -119,6 +119,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cityList: {
+    maxHeight: 300,
+  },
+  cityListContent: {
     gap: Spacing.two,
   },
   cityRow: {
