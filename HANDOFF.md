@@ -96,7 +96,7 @@ padding.
   earlier ad-hoc testing (joined to a test halaqa).
 - **Everything in §5 has been self-tested** by Claude (Playwright against
   the web target + direct backend `curl` calls + the real pytest suite,
-  228+ passing). The first real **on-device pass has now happened** (not
+  244 passing). The first real **on-device pass has now happened** (not
   just self-testing) and found genuine bugs self-testing missed — see §4
   items 24, 26-27 for the two most significant (token refresh, the Al-
   Fatiha BOM, Whisper hallucinating short clips) — all fixed and verified.
@@ -653,16 +653,43 @@ Every route re-verified live via the web harness after the move.
 **Design system**: `ThemedView` now applies a subtle shadow automatically
 for `type="backgroundElement"` (the app's existing card convention) —
 every card in the app got real depth from one change. New `Skeleton` and
-`EmptyState` components, adopted on the Quran/Hifz/Community tab landings
-so far (Home and More didn't have generic loading/error text to replace;
-the remaining ~15 sub-screens are a reasonable next pass, not yet done —
-see §6).
+`EmptyState` components, adopted across every screen that had the old
+plain-text loading/error pattern (all 5 tab landings plus every one-level-
+deep sub-screen) — this part of the visual pass is fully done, not partial.
 
-**Not yet done from this batch's own plan** (scoped but not started —
-genuinely next, not blocked on anything): the remaining visual pass on
-sub-screens beyond the 3 tab landings, and the Phase C "Islamic lifestyle
-app" expansion (prayer times, qibla compass, dua/azkar, hadith browser,
-Hijri calendar) — see §6.
+**Phase C — expanded into a full Islamic-lifestyle app**, all 5 pieces
+shipped, all under the **More** tab:
+- **Prayer Times** (`src/app/more/prayer-times.tsx`) — `adhan` (Muslim
+  World League method) from the user's real coordinates, highlighting
+  whichever prayer is next, refreshing every minute.
+- **Qibla** (`src/app/more/qibla.tsx`) — `adhan`'s bundled `Qibla()`
+  bearing + `expo-location`'s `watchHeadingAsync` for a live-rotating
+  needle; no heading sensor on web/most browsers, so it degrades to
+  showing the fixed bearing in degrees instead of a frozen/fake needle.
+- **Islamic Calendar** (`src/app/more/calendar.tsx`) — Hijri date
+  (`@tabby_ai/hijri-converter`, Umm al-Qura-based arithmetic, explicitly
+  *not* local moon-sighting -- caveat shown in-UI) + a Ramadan countdown
+  (simple day-by-day forward search, not a reverse conversion).
+- **Dua & Azkar** (`src/app/more/azkar.tsx` + `azkar-category.tsx`) — 11
+  categories / 133 chapters / 287 items, Arabic + English + hadith
+  reference per item, bundled statically as `src/data/azkar.json`.
+  Extracted from `my-prayers/muslim-data-android`'s Apache-2.0 SQLite
+  database (attribution in `src/data/ATTRIBUTION.md`) -- checked and
+  rejected an alternative (`nawafalqari/ayah`) for having no license and
+  no English translation.
+- **Hadith** (`src/app/more/hadith.tsx` + `hadith-collection.tsx`,
+  backend `app/services/hadith_corpus_service.py` + `/hadith/*`) — all 10
+  major collections (Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasai, Ibn
+  Majah, Malik, 3x "Forty Hadith" compilations), paginated browsing.
+  Sourced from `fawazahmed0/hadith-api` (public domain, The Unlicense) --
+  checked and rejected sunnah.com's official API (alive but key-gated
+  with a 2,892-issue request backlog and redistribution-restrictive
+  terms) and an unlicensed scraped alternative (`AhmedBaset/hadith-json`).
+  Same load-or-fetch disk-cache pattern as `QuranCorpusService`, but
+  per-collection and lazy (fetched only when actually browsed).
+
+None of Phase C touches auth -- these are location/device/reference-data
+features available whether or not the user is logged in.
 
 ---
 
@@ -689,22 +716,23 @@ left falls into two different buckets, and it matters which:
   bug (§4 item 30) that the web harness itself could easily have missed
   on a different screen. Don't assume the restructure is finger-tested
   until it actually has been.
-- **The remaining visual pass**: Skeleton/EmptyState are adopted on 3 of
-  5 tab landings (Quran, Hifz, Community) — Home, More, and every one-
-  level-deep sub-screen (surah detail, practice, quiz, garden, coach,
-  halaqa roster/student, both leaderboards, khatmah detail) still have
-  the older plain-text loading/error pattern. Mechanical, bounded work,
-  not a design decision — just hasn't been done yet.
-- **Phase C — expand into a full Islamic-lifestyle app** (the user's own
-  explicit scope decision for this batch, see third build batch above):
-  prayer times and qibla compass are both pure client-side calculation
-  (no backend) — `adhan` + `expo-location` for prayer times, `expo-sensors`'
-  magnetometer + a bearing calculation to the Kaaba for qibla. Hijri
-  calendar/Ramadan countdown is similarly client-side. Dua/azkar needs a
-  static JSON content dataset bundled in the app (sourcing it is the real
-  task, not engineering). Hadith browser is the one piece needing genuine
-  new backend/corpus work (mirror `quran_corpus_service.py`'s pattern) —
-  do it last, after the cheaper client-side pieces ship.
+- **Hadith search** — right now the hadith browser is pagination-only (20
+  per page, up to ~7589 pages' worth for Bukhari); a search endpoint (even
+  simple substring matching over the cached per-collection JSON, no need
+  for a full BM25 index) would make it actually usable for "find a
+  specific hadith" rather than just "browse in order."
+- **Hadith grading display polish** — `grades` is often `[]` for a given
+  edition/hadith (see HANDOFF's hadith-api research); worth deciding
+  whether to show "no grading available" explicitly vs. the current
+  silent omission.
+- **Azkar transliteration** — the bundled dataset (`src/data/azkar.json`)
+  has Arabic + English only, no romanized transliteration; would need a
+  separate source if that's wanted (none was found verified-licensed
+  during this batch's research).
+- **A reciter audio button on individual duas/hadith** — out of scope for
+  this batch (no audio-serving infra for *any* content yet, see F7's own
+  note on this), but would be a natural fast-follow once that infra
+  exists for anything.
 
 ### Genuinely blocked — needs the user, not more Claude Code time
 - **F8 (OS-native integration: widgets, Live Activity, Siri shortcuts)**
@@ -792,7 +820,7 @@ new information):
    list, in whatever order they prefer — none of it is blocked. Use the
    same discipline as every phase before it: verify the real API/library
    behavior first, plan, build, **actually test it** (§3's method, plus
-   the real pytest suite for any backend change — currently 228+ tests,
+   the real pytest suite for any backend change — currently 244+ tests,
    should stay green), commit when asked. **Before trusting any `tsc`
    route-type error after moving/renaming routes, see §4 items 28-29** —
    it's very likely a stale cache, not a real error.
