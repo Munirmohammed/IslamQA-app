@@ -36,7 +36,7 @@ async function parseErrorDetail(response: Response): Promise<string> {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   /** Send as application/x-www-form-urlencoded instead of JSON (needed for
    * the OAuth2-password-flow /auth/login endpoint specifically). */

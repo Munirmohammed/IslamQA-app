@@ -23,6 +23,15 @@ function IslamicTools() {
           )}
         </Pressable>
       </Link>
+      <Link href="/more/salah-tracker" asChild>
+        <Pressable>
+          {({ pressed }) => (
+            <ThemedView type="backgroundElement" style={[styles.toolRow, pressed && styles.pressed]}>
+              <ThemedText>☑️ Salah & Fasting Tracker</ThemedText>
+            </ThemedView>
+          )}
+        </Pressable>
+      </Link>
       <Link href="/more/qibla" asChild>
         <Pressable>
           {({ pressed }) => (
