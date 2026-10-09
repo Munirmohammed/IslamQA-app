@@ -7,10 +7,12 @@ import { ShareAyahButton } from '@/components/share-ayah-button';
 import { TajweedText } from '@/components/tajweed-text';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { WordByWordText } from '@/components/word-by-word-text';
 import { Spacing } from '@/constants/theme';
 import { AyahListenButton } from '@/features/audio/ayah-listen-button';
 import { useMe } from '@/features/auth/api';
 import { useAddToMemorization } from '@/features/memorization/api';
+import { useWordByWord } from '@/features/quran/api';
 import { useAyahTajweed } from '@/features/tajweed/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -31,8 +33,13 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
   const theme = useTheme();
   const { data: me } = useMe();
   const addToMemorization = useAddToMemorization();
-  const [showTajweed, setShowTajweed] = useState(false);
-  const { data: tajweed } = useAyahTajweed(ayah.surah_number, ayah.ayah_number, showTajweed);
+  const [displayMode, setDisplayMode] = useState<'plain' | 'tajweed' | 'wordByWord'>('plain');
+  const { data: tajweed } = useAyahTajweed(ayah.surah_number, ayah.ayah_number, displayMode === 'tajweed');
+  const { data: wordByWord } = useWordByWord(
+    ayah.surah_number,
+    ayah.ayah_number,
+    displayMode === 'wordByWord'
+  );
 
   return (
     <ThemedView type="backgroundElement" style={styles.container}>
@@ -64,8 +71,10 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
         </ArabicText>
       )}
 
-      {showTajweed && tajweed ? (
+      {displayMode === 'tajweed' && tajweed ? (
         <TajweedText plainText={tajweed.plain_text} rules={tajweed.rules} />
+      ) : displayMode === 'wordByWord' && wordByWord ? (
+        <WordByWordText words={wordByWord} />
       ) : (
         <ArabicText>{ayah.text_uthmani}</ArabicText>
       )}
@@ -121,10 +130,18 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
           </Pressable>
         </Link>
 
-        <Pressable onPress={() => setShowTajweed((v) => !v)}>
+        <Pressable onPress={() => setDisplayMode((m) => (m === 'tajweed' ? 'plain' : 'tajweed'))}>
           {({ pressed }) => (
             <ThemedText type="small" themeColor="primary" style={{ opacity: pressed ? 0.6 : 1 }}>
-              {showTajweed ? 'Hide tajweed' : 'Tajweed'}
+              {displayMode === 'tajweed' ? 'Hide tajweed' : 'Tajweed'}
+            </ThemedText>
+          )}
+        </Pressable>
+
+        <Pressable onPress={() => setDisplayMode((m) => (m === 'wordByWord' ? 'plain' : 'wordByWord'))}>
+          {({ pressed }) => (
+            <ThemedText type="small" themeColor="primary" style={{ opacity: pressed ? 0.6 : 1 }}>
+              {displayMode === 'wordByWord' ? 'Hide word-by-word' : 'Word by word'}
             </ThemedText>
           )}
         </Pressable>

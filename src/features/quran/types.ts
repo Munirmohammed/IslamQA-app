@@ -38,3 +38,10 @@ export interface RandomAyah {
   text_uthmani: string;
   translation_en: string;
 }
+
+export interface WordByWord {
+  position: number;
+  text_uthmani: string;
+  translation: string;
+  transliteration: string | null;
+}

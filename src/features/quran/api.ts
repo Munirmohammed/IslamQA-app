@@ -9,7 +9,7 @@ import {
   removeDownloadedSurah,
 } from '@/lib/offline-packs';
 
-import type { RandomAyah, SurahDetail, SurahSummary } from './types';
+import type { RandomAyah, SurahDetail, SurahSummary, WordByWord } from './types';
 
 export function useSurahs() {
   return useQuery({
@@ -71,6 +71,15 @@ export function useRandomAyah() {
         `/api/v1/quran/random-ayah${surah !== undefined ? `?surah=${surah}` : ''}`,
         { auth: false }
       ),
+  });
+}
+
+export function useWordByWord(surah: number, ayah: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['quran', 'word-by-word', surah, ayah],
+    queryFn: () => apiRequest<WordByWord[]>(`/api/v1/quran/word-by-word/${surah}/${ayah}`, { auth: false }),
+    enabled,
+    staleTime: Infinity, // a given ayah's word-by-word breakdown never changes
   });
 }
 
