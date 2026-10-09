@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { SurahAudioBar } from '@/features/audio/surah-audio-bar';
 import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -73,6 +74,11 @@ export default function SurahDetailScreen() {
             renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
             contentContainerStyle={styles.listContent}
             ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
+            ListHeaderComponent={
+              <ThemedView type="backgroundElement" style={styles.audioBar}>
+                <SurahAudioBar surahNumber={surahNumber} />
+              </ThemedView>
+            }
           />
         )}
       </SafeAreaView>
@@ -95,6 +101,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,
+  },
+  audioBar: {
+    borderRadius: Spacing.three,
+    padding: Spacing.four,
+    marginBottom: Spacing.three,
   },
   separator: {
     height: Spacing.three,

@@ -8,6 +8,7 @@ import { TajweedText } from '@/components/tajweed-text';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { AyahListenButton } from '@/features/audio/ayah-listen-button';
 import { useMe } from '@/features/auth/api';
 import { useAddToMemorization } from '@/features/memorization/api';
 import { useAyahTajweed } from '@/features/tajweed/api';
@@ -74,6 +75,8 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
       </ThemedText>
 
       <View style={styles.actionsRow}>
+        <AyahListenButton surah={ayah.surah_number} ayah={ayah.ayah_number} />
+
         <ShareAyahButton
           textUthmani={ayah.text_uthmani}
           translationEn={ayah.translation_en}
