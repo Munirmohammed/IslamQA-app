@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { toHijri } from '@/lib/hijri';
 
 const RAMADAN_MONTH = 9;
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     gap: Spacing.four,
   },
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.five,
     alignItems: 'center',
     gap: Spacing.one,

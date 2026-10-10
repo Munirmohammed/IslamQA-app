@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 interface EmptyStateProps {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   actionButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.five,
   },

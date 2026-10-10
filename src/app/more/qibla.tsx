@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LocationPicker } from '@/components/location-picker';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getDistanceToKaabaKm, getQiblaBearing } from '@/lib/prayer-times';
 import { useLocationStore } from '@/stores/location-store';
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.half,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
   },

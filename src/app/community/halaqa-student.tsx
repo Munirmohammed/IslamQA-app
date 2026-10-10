@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useStudentSessions } from '@/features/halaqa/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     height: Spacing.two,
   },
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
   },

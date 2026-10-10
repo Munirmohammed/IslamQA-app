@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useHadithCollections } from '@/features/hadith/api';
 
 export default function HadithCollectionsScreen() {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     height: Spacing.two,
   },
   row: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
   },
   pressed: {

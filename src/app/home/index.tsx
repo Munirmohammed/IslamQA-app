@@ -10,7 +10,7 @@ import { KhatmahProgressCard } from '@/components/khatmah-progress-card';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useMe } from '@/features/auth/api';
 import { useHistory, useStreak } from '@/features/gamification/api';
 import { useKhatmahProgress } from '@/features/khatmah/api';
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
   },
   cta: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
     alignItems: 'center',
@@ -266,13 +266,13 @@ const styles = StyleSheet.create({
   },
   streakCard: {
     flexDirection: 'row',
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.four,
     paddingHorizontal: Spacing.four,
     alignItems: 'center',
   },
   streakCardEmpty: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
     gap: Spacing.half,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
   },
   continueTextColumn: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   salahCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
   },

@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useSimilarAyahs } from '@/features/memorization/api';
 import { useRandomAyah } from '@/features/quran/api';
 import { useTheme } from '@/hooks/use-theme';
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   optionCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
     borderWidth: 2,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   doneButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

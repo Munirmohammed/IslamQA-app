@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTafsirSearch } from '@/features/tafsir/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   searchButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingHorizontal: Spacing.four,
     justifyContent: 'center',
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     height: Spacing.two,
   },
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
   },

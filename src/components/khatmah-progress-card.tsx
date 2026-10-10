@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import type { KhatmahProgress } from '@/features/khatmah/types';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -48,7 +48,7 @@ export function KhatmahProgressCard({ progress }: { progress: KhatmahProgress })
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
   },

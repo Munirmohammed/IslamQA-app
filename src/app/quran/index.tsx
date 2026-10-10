@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/skeleton';
 import { SurahListItem } from '@/components/surah-list-item';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useSurahs } from '@/features/quran/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
   },
   quickAction: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
     gap: Spacing.half,

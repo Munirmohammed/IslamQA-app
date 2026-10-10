@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useHadithPage } from '@/features/hadith/api';
 
 import type { Hadith } from '@/features/hadith/types';
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.two,
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   pagerButtonInner: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
   },

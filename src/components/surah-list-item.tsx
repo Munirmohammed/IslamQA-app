@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { ArabicText } from '@/components/arabic-text';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useDownloadSurah, useIsSurahDownloaded, useRemoveDownloadedSurah } from '@/features/quran/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     overflow: 'hidden',
   },
   navArea: {

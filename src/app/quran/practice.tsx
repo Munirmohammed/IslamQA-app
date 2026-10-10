@@ -10,7 +10,7 @@ import { RecordButton } from '@/components/record-button';
 import { ShareAyahButton } from '@/components/share-ayah-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useLogProgress } from '@/features/gamification/api';
 import { useRecitationCheck } from '@/features/recitation/api';
 import { useSurah } from '@/features/quran/api';
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four,
   },
   resultCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
   },
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sessionButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

@@ -12,7 +12,7 @@ import { Pressable, View, StyleSheet } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 // Outline by default, filled when the tab is active -- matches the native
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
   },
   noShadow: {
     shadowOpacity: 0,

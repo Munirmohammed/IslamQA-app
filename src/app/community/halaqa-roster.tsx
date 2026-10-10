@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useHalaqaStudents } from '@/features/halaqa/api';
 
 import type { StudentSummary } from '@/features/halaqa/types';
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     height: Spacing.two,
   },
   row: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.three,
     gap: Spacing.half,
   },

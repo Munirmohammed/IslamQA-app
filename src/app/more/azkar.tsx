@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { AZKAR_CATEGORIES } from '@/lib/azkar-data';
 
 export default function AzkarScreen() {
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
   },
   pressed: {

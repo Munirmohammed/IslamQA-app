@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useCreateHalaqa, useJoinHalaqa, useMyHalaqas } from '@/features/halaqa/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   row: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.three,
     gap: Spacing.half,
   },
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   formCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
   },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   formButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

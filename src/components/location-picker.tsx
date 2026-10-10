@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useRequestLocation } from '@/hooks/use-request-location';
 import { useTheme } from '@/hooks/use-theme';
 import { WORLD_CITIES } from '@/lib/world-cities';
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

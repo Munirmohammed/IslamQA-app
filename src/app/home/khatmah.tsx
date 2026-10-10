@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useKhatmahProgress, useRestartKhatmah } from '@/features/khatmah/api';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     gap: Spacing.four,
   },
   summaryCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.five,
     alignItems: 'center',
     gap: Spacing.one,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

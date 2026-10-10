@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FeatureCard } from '@/components/feature-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useLogin, useLogout, useMe, useRegister } from '@/features/auth/api';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.three,
   },
   card: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   submitButton: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     alignItems: 'center',
   },

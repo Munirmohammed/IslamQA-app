@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useSurahs } from '@/features/quran/api';
 import { useMyMistakePatterns } from '@/features/recitation/api';
 import { useTheme } from '@/hooks/use-theme';
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     gap: Spacing.five,
   },
   summaryCard: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.five,
     alignItems: 'center',
     gap: Spacing.one,

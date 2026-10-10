@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { SurahAudioBar } from '@/features/audio/surah-audio-bar';
 import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
   },
   audioBar: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     marginBottom: Spacing.three,
   },
