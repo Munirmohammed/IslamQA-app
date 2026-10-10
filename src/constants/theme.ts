@@ -20,6 +20,8 @@ export const Colors = {
     border: '#E2E4E1',
     error: '#C0392B',
     success: '#2E8B57',
+    recitationHighlight: '#DC7702',
+    recitationHighlightMuted: '#FBEBD7',
   },
   dark: {
     text: '#F2F3F1',
@@ -33,6 +35,8 @@ export const Colors = {
     border: '#242B27',
     error: '#E0574A',
     success: '#3DAF72',
+    recitationHighlight: '#EF911D',
+    recitationHighlightMuted: '#2E2112',
   },
 } as const;
 
@@ -94,6 +98,17 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Corner-radius scale, decoupled from `Spacing` -- tying radius to the
+ * spacing scale (one previous fix) made every card/button consistent
+ * with each other, but Quran.com's own shipped design system (sourced
+ * directly from its open-source iOS app, UI/NoorUI/Sources/Dimensions)
+ * uses 12pt as its one baseline card/button radius, not 16. `card` is
+ * that baseline; `pill` matches their circular/capsule buttons. */
+export const Radius = {
+  card: 12,
+  pill: 999,
+} as const;
 
 /** Cards had no depth at all before this -- flat `backgroundElement`
  * fills on a flat background. iOS reads `shadow*`, Android reads

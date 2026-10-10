@@ -69,7 +69,7 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
               <Ionicons
                 name={status.playing ? 'pause' : 'play'}
                 size={20}
-                color={theme.primary}
+                color={status.playing ? theme.recitationHighlight : theme.primary}
               />
             </ThemedView>
           )}

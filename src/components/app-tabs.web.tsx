@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import {
   Tabs,
   TabList,
@@ -12,6 +13,18 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+// Outline by default, filled when the tab is active -- matches the native
+// tab bar's `sf={{ default, selected }}` icon pairing (confirmed as the
+// convention Quran.com's own app uses throughout its tab bar).
+const TAB_ICONS: Record<string, { outline: keyof typeof Ionicons.glyphMap; filled: keyof typeof Ionicons.glyphMap }> = {
+  Home: { outline: 'home-outline', filled: 'home' },
+  Quran: { outline: 'book-outline', filled: 'book' },
+  Hifz: { outline: 'leaf-outline', filled: 'leaf' },
+  Community: { outline: 'people-outline', filled: 'people' },
+  More: { outline: 'person-outline', filled: 'person' },
+};
 
 export default function AppTabs() {
   return (
@@ -41,6 +54,10 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+  const label = typeof children === 'string' ? children : '';
+  const icon = TAB_ICONS[label];
+
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       {/* Suppress ThemedView's default "backgroundElement" shadow here --
@@ -49,6 +66,13 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={[styles.tabButtonView, styles.noShadow]}>
+        {icon && (
+          <Ionicons
+            name={isFocused ? icon.filled : icon.outline}
+            size={16}
+            color={isFocused ? theme.text : theme.textSecondary}
+          />
+        )}
         <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
           {children}
         </ThemedText>
@@ -97,6 +121,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   tabButtonView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,

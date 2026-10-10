@@ -9,7 +9,7 @@ import { TajweedText } from '@/components/tajweed-text';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WordByWordText } from '@/components/word-by-word-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { AyahListenButton } from '@/features/audio/ayah-listen-button';
 import { useMe } from '@/features/auth/api';
 import { useAddToMemorization } from '@/features/memorization/api';
@@ -35,6 +35,7 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
   const { data: me } = useMe();
   const addToMemorization = useAddToMemorization();
   const [displayMode, setDisplayMode] = useState<'plain' | 'tajweed' | 'wordByWord'>('plain');
+  const [isPlaying, setIsPlaying] = useState(false);
   const { data: tajweed } = useAyahTajweed(ayah.surah_number, ayah.ayah_number, displayMode === 'tajweed');
   const { data: wordByWord } = useWordByWord(
     ayah.surah_number,
@@ -43,7 +44,12 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
   );
 
   return (
-    <ThemedView type="backgroundElement" style={styles.container}>
+    <ThemedView
+      type="backgroundElement"
+      style={[
+        styles.container,
+        isPlaying && { backgroundColor: theme.recitationHighlightMuted },
+      ]}>
       <View style={styles.headerRow}>
         <View style={[styles.numberBadge, { backgroundColor: theme.primaryMuted }]}>
           <ThemedText type="small" themeColor="primary" style={styles.numberText}>
@@ -86,7 +92,11 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
       </ThemedText>
 
       <View style={styles.actionsRow}>
-        <AyahListenButton surah={ayah.surah_number} ayah={ayah.ayah_number} />
+        <AyahListenButton
+          surah={ayah.surah_number}
+          ayah={ayah.ayah_number}
+          onPlayingChange={setIsPlaying}
+        />
 
         <ShareAyahButton
           textUthmani={ayah.text_uthmani}
@@ -156,7 +166,7 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
   },
