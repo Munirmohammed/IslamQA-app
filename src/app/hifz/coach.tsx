@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Radius, Spacing } from '@/constants/theme';
+import { correctRateColor, Radius, Spacing } from '@/constants/theme';
 import { useSurahs } from '@/features/quran/api';
 import { useMyMistakePatterns } from '@/features/recitation/api';
 import { useTheme } from '@/hooks/use-theme';
@@ -75,6 +75,10 @@ export default function TajweedCoachScreen() {
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Surahs that need more practice</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  Red to green, worst to best -- the same mistake-frequency scale Tarteel&apos;s
+                  own analytics use to show which surahs need work.
+                </ThemedText>
                 {data.surah_breakdown.map((row) => (
                   <SurahRow
                     key={row.surah_number}
@@ -143,7 +147,7 @@ function SurahRow({ row, name }: { row: SurahMistakeBreakdown; name: string }) {
         <View
           style={[
             styles.barFill,
-            { width: `${row.correct_rate * 100}%`, backgroundColor: theme.primary },
+            { width: `${row.correct_rate * 100}%`, backgroundColor: correctRateColor(theme, row.correct_rate) },
           ]}
         />
       </View>

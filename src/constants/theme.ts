@@ -20,6 +20,8 @@ export const Colors = {
     border: '#E2E4E1',
     error: '#C0392B',
     success: '#2E8B57',
+    mistakeModerate: '#D9762B',
+    mistakeLow: '#C9A23B',
     recitationHighlight: '#DC7702',
     recitationHighlightMuted: '#FBEBD7',
   },
@@ -35,10 +37,33 @@ export const Colors = {
     border: '#242B27',
     error: '#E0574A',
     success: '#3DAF72',
+    mistakeModerate: '#E68A42',
+    mistakeLow: '#D6B34C',
     recitationHighlight: '#EF911D',
     recitationHighlightMuted: '#2E2112',
   },
 } as const;
+
+/** Tarteel's own Advanced Analytics documents a 4-tier mistake-frequency
+ * scale for "which surahs are strong vs. need more work" -- red (worst) ->
+ * orange -> yellow -> green (best), applied regardless of mistake type.
+ * Tarteel doesn't publish exact hex values (closed source, only color
+ * *names* in their support docs), so `error`/`success` anchor the two
+ * extremes and `mistakeModerate`/`mistakeLow` fill the middle two steps;
+ * `correctRateColor` maps a 0-1 accuracy rate onto this scale. */
+interface MistakeScaleColors {
+  error: string;
+  mistakeModerate: string;
+  mistakeLow: string;
+  success: string;
+}
+
+export function correctRateColor(theme: MistakeScaleColors, correctRate: number): string {
+  if (correctRate < 0.5) return theme.error;
+  if (correctRate < 0.7) return theme.mistakeModerate;
+  if (correctRate < 0.85) return theme.mistakeLow;
+  return theme.success;
+}
 
 /** Arabic (Uthmani Quran) type scale -- deliberately separate from the
  * Latin type scale: Arabic script needs larger sizes and more line-height
