@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,6 +24,22 @@ const CARDINALS: { label: string; deg: number }[] = [
   { label: 'W', deg: 270 },
 ];
 
+/** Muslim Pro's actual Qibla screen has a row of selectable compass
+ * "skins" below the dial (confirmed via its own Play Store screenshots).
+ * Theirs are textured/material finishes (wood grain, brushed brass) this
+ * doesn't attempt to fake with fabricated graphics -- this reskins the
+ * one real, buildable part: the ring/needle color, while ticks and
+ * cardinal labels stay theme-colored for legibility. `null` means "use
+ * the app's own theme colors" (this app's existing green identity),
+ * matching their own default/"Classic" option. */
+const COMPASS_SKINS: { id: string; label: string; color: string | null }[] = [
+  { id: 'classic', label: 'Classic', color: null },
+  { id: 'crimson', label: 'Crimson', color: '#C0392B' },
+  { id: 'slate', label: 'Slate', color: '#4A4A4A' },
+  { id: 'amber', label: 'Amber', color: '#C9A24B' },
+  { id: 'sapphire', label: 'Sapphire', color: '#2E5BA8' },
+];
+
 /** Shortest-path equivalent of `target`, relative to `current` -- keeps
  * the arrow animating the short way around (e.g. 359deg -> 1deg takes a
  * 2deg step, not a 358deg spin) instead of snapping to a raw 0-360
@@ -43,6 +59,8 @@ export default function QiblaScreen() {
   const latitude = useLocationStore((s) => s.latitude);
   const longitude = useLocationStore((s) => s.longitude);
   const [heading, setHeading] = useState<number | null>(null);
+  const [skinId, setSkinId] = useState(COMPASS_SKINS[0].id);
+  const skinColor = COMPASS_SKINS.find((s) => s.id === skinId)?.color ?? null;
 
   // No web implementation for device heading (no magnetometer access in
   // most browsers via Expo's web shim) -- degrade to the static bearing
@@ -78,8 +96,10 @@ export default function QiblaScreen() {
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  const dialColor = isAligned ? theme.success : theme.border;
-  const arrowColor = isAligned ? theme.success : theme.primary;
+  // Alignment feedback always wins over the cosmetic skin choice -- "you're
+  // facing qibla" shouldn't be hidden by whichever ring color is picked.
+  const dialColor = isAligned ? theme.success : (skinColor ?? theme.border);
+  const arrowColor = isAligned ? theme.success : (skinColor ?? theme.primary);
 
   return (
     <ThemedView style={styles.container}>
@@ -162,6 +182,25 @@ export default function QiblaScreen() {
                   compass.
                 </ThemedText>
               )}
+
+              <View style={styles.skinRow}>
+                {COMPASS_SKINS.map((skin) => (
+                  <Pressable key={skin.id} onPress={() => setSkinId(skin.id)} hitSlop={4}>
+                    <View
+                      style={[
+                        styles.skinSwatch,
+                        { borderColor: skin.id === skinId ? theme.primary : theme.border },
+                      ]}>
+                      <View
+                        style={[
+                          styles.skinSwatchFill,
+                          { backgroundColor: skin.color ?? theme.primary },
+                        ]}
+                      />
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>
@@ -295,5 +334,23 @@ const styles = StyleSheet.create({
   hint: {
     textAlign: 'center',
     paddingHorizontal: Spacing.four,
+  },
+  skinRow: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+    paddingTop: Spacing.two,
+  },
+  skinSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skinSwatchFill: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
 });
