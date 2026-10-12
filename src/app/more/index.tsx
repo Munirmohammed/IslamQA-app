@@ -11,8 +11,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
 
 const TOOLS: SettingsRowItem[] = [
-  { icon: 'time-outline', label: 'Prayer Times', href: '/more/prayer-times' },
-  { icon: 'checkmark-circle-outline', label: 'Salah & Fasting Tracker', href: '/more/salah-tracker' },
+  { icon: 'time-outline', label: 'Prayers', href: '/more/prayer-times' },
   { icon: 'compass-outline', label: 'Qibla Direction', href: '/more/qibla' },
   { icon: 'calendar-outline', label: 'Islamic Calendar', href: '/more/calendar' },
   { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },

@@ -32,7 +32,7 @@ interface FeatureGridItem {
 // competitor apps render a dense shortcut grid.
 const FEATURE_GRID: FeatureGridItem[] = [
   { icon: 'compass-outline', label: 'Qibla', href: '/more/qibla' },
-  { icon: 'time-outline', label: 'Prayer Times', href: '/more/prayer-times' },
+  { icon: 'time-outline', label: 'Prayers', href: '/more/prayer-times' },
   { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },
   { icon: 'book-outline', label: 'Hadith', href: '/more/hadith' },
   { icon: 'cash-outline', label: 'Zakat', href: '/more/zakat' },
@@ -65,7 +65,7 @@ function TodaySalahCard() {
   if (!today) return null;
 
   return (
-    <Link href="/more/salah-tracker" asChild>
+    <Link href="/more/prayer-times" asChild>
       <Pressable>
         {({ pressed }) => (
           <ThemedView type="backgroundElement" style={[styles.salahCard, pressed && styles.pressed]}>
