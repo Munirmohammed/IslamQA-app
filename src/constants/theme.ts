@@ -40,7 +40,12 @@ export const Colors = {
     mistakeModerate: '#D9762B',
     mistakeLow: '#C9A23B',
     recitationHighlight: '#DC7702',
-    recitationHighlightMuted: '#FBEBD7',
+    // Derived from the real background rather than kept as its old fixed
+    // value -- `#FBEBD7` read fine against the app's previous pure-white
+    // background but all but disappeared against the new warm cream one
+    // (the two were nearly identical), so this mixes enough of the real
+    // highlight color in to stay visible on whatever the background is.
+    recitationHighlightMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#DC7702', 0.22),
   },
   dark: {
     text: MUSLIM_PRO_DARK_TEXT,

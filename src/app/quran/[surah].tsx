@@ -5,12 +5,13 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ArabicText } from '@/components/arabic-text';
 import { AyahCard } from '@/components/ayah-card';
 import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ReadingThemes, Spacing, type ReadingThemeId } from '@/constants/theme';
+import { Radius, ReadingThemes, Spacing, type ReadingThemeId } from '@/constants/theme';
 import { SurahAudioBar } from '@/features/audio/surah-audio-bar';
 import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
@@ -19,6 +20,24 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useReadingThemeStore } from '@/stores/reading-theme-store';
 
 const READING_THEME_IDS: ReadingThemeId[] = ['system', 'original', 'paper', 'calm', 'focus', 'quiet'];
+
+/** Muslim Pro opens each surah with a decorative ornamental banner
+ * framing the Arabic surah name (confirmed via its own Play Store
+ * screenshots). That exact artwork isn't something to fabricate --
+ * these are simple sparkle flourishes around the name instead of
+ * invented floral/geometric graphics, same idea, honestly built. */
+function SurahBanner({ nameAr }: { nameAr: string }) {
+  const theme = useTheme();
+  return (
+    <ThemedView type="primaryMuted" style={styles.surahBanner}>
+      <Ionicons name="sparkles-outline" size={14} color={theme.primary} />
+      <ArabicText size="ayah" bold themeColor="primary" style={styles.surahBannerText}>
+        {nameAr}
+      </ArabicText>
+      <Ionicons name="sparkles-outline" size={14} color={theme.primary} />
+    </ThemedView>
+  );
+}
 
 export default function SurahDetailScreen() {
   const { surah: surahParam } = useLocalSearchParams<{ surah: string }>();
@@ -124,6 +143,8 @@ export default function SurahDetailScreen() {
                 data={surah.ayahs}
                 keyExtractor={(item) => item.key}
                 renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
+                ListHeaderComponent={<SurahBanner nameAr={surah.surah_name_ar} />}
+                ListHeaderComponentStyle={styles.surahBannerWrapper}
                 contentContainerStyle={[
                   styles.listContent,
                   readingTheme && { backgroundColor: readingTheme.background },
@@ -167,6 +188,21 @@ const styles = StyleSheet.create({
     // pads itself for the home-indicator inset -- sized for that
     // worst-case height (bar content + its own bottom safe-area padding).
     paddingBottom: Spacing.six + 40,
+  },
+  surahBannerWrapper: {
+    marginBottom: Spacing.three,
+  },
+  surahBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    borderRadius: Radius.card,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+  },
+  surahBannerText: {
+    textAlign: 'center',
   },
   themeToggleRow: {
     flexDirection: 'row',

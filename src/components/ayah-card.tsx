@@ -48,7 +48,12 @@ export function AyahCard({ ayah, surahNameEn }: AyahCardProps) {
       type="backgroundElement"
       style={[
         styles.container,
-        isPlaying && { backgroundColor: theme.recitationHighlightMuted },
+        // A speech-bubble read (Muslim Pro highlights the active ayah this
+        // way, confirmed via its own screenshots) without an overflowing
+        // tail shape, which FlashList's recycled cell containers may clip --
+        // one squared-off corner reads as a bubble pointer safely within
+        // the card's own bounds instead.
+        isPlaying && { backgroundColor: theme.recitationHighlightMuted, borderBottomLeftRadius: 4 },
       ]}>
       <View style={styles.headerRow}>
         <View style={[styles.numberBadge, { backgroundColor: theme.primaryMuted }]}>
