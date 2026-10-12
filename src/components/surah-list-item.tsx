@@ -28,14 +28,10 @@ export function SurahListItem({ surah }: SurahListItemProps) {
                 styles.navAreaInner,
                 pressed && { backgroundColor: theme.backgroundSelected },
               ]}>
-              <View style={[styles.numberBadge, { borderColor: theme.primary }]}>
-                <ThemedText type="smallBold" themeColor="primary">
-                  {surah.surah_number}
-                </ThemedText>
-              </View>
-
               <View style={styles.textColumn}>
-                <ThemedText type="smallBold">{surah.surah_name_en}</ThemedText>
+                <ThemedText type="smallBold">
+                  {surah.surah_number}. {surah.surah_name_en}
+                </ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {surah.surah_name_translation_en} · {surah.ayah_count} ayahs ·{' '}
                   {surah.revelation_type}
@@ -105,14 +101,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingVertical: Spacing.three,
     paddingLeft: Spacing.three,
-  },
-  numberBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   downloadBadge: {
     width: 44,

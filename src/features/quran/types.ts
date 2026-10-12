@@ -7,6 +7,7 @@ export interface SurahSummary {
   surah_name_translation_en: string;
   revelation_type: string;
   ayah_count: number;
+  starting_juz: number;
 }
 
 export interface Ayah {
