@@ -87,6 +87,14 @@ function TodaySalahCard() {
   );
 }
 
+/** A capsule with a circular ayah-number badge, not a plain rounded-rect
+ * row -- Quran.com's own "Continue Reading" treatment (NoorUI's
+ * RecentPageCapsule: a circular number badge + title/subtitle, inside a
+ * fully-rounded capsule shape), sourced by reading their open-source iOS
+ * repo directly rather than guessed. Their version badges a *page*
+ * number (their Mushaf is paginated); this app isn't, so the ayah number
+ * takes that badge's place -- same shape, the number that actually exists
+ * here. */
 function ContinueReadingCard({ khatmah }: { khatmah: KhatmahProgress }) {
   const theme = useTheme();
   if (khatmah.last_surah === null) return null;
@@ -96,7 +104,11 @@ function ContinueReadingCard({ khatmah }: { khatmah: KhatmahProgress }) {
       <Pressable>
         {({ pressed }) => (
           <ThemedView type="primaryMuted" style={[styles.continueCard, pressed && styles.pressed]}>
-            <Ionicons name="book-outline" size={22} color={theme.primary} />
+            <View style={[styles.continueBadge, { backgroundColor: theme.background }]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                {khatmah.last_ayah}
+              </ThemedText>
+            </View>
             <View style={styles.continueTextColumn}>
               <ThemedText type="smallBold" themeColor="primary">
                 Continue reading
@@ -294,8 +306,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    borderRadius: Radius.card,
-    padding: Spacing.four,
+    borderRadius: Radius.pill,
+    padding: Spacing.two,
+    paddingRight: Spacing.four,
+  },
+  continueBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   continueTextColumn: {
     flex: 1,
