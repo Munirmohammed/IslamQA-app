@@ -9,19 +9,23 @@ import { Platform } from 'react-native';
 
 /** Muslim Pro's actual palette, measured directly from its real Play
  * Store screenshots (pixel-sampled via Pillow, not eyeballed) --
- * `#003030`/`#002424` dominate its dark "Today"/Prayers screens (a deep
- * forest teal, not navy or near-black), `#48A884` is its real accent
- * green, and `#FCF0D8` is the actual cream of its "Paper" Quran reading
- * theme. Replaces this app's previous white/near-black palette with
- * these measured values directly as the app's own light/dark themes
- * (not a buried toggle), so this cascades through every screen that
- * already uses ThemedView/ThemedText/useTheme -- the same leverage point
- * as the reading-theme colors, applied app-wide this time. */
+ * `#003030`/`#002424` dominate its dark "Today"/Prayers/Quran-list
+ * screens (a deep forest teal, not navy or near-black), and `#48A884` is
+ * its real accent green. Muslim Pro's own cream (`#FCF0D8`, its "Paper"
+ * Quran-reading theme specifically) was tried here first as this app's
+ * *general* light background -- a mistake, since every other screen
+ * measured (Prayers, Quran list, Today) is the dark teal, not cream, and
+ * it read as "yellow" rather than "the green Muslim Pro app." The light
+ * background below is a light tint of the real green instead; the
+ * existing Quran-reading-only theme picker (`ReadingThemes` below, a
+ * separate, still-valid feature sourced from Quran.com) is untouched and
+ * still offers an actual cream-toned "Paper" option for anyone who wants
+ * one, just not as this app's default. */
 const MUSLIM_PRO_DARK_BG = '#002424';
 const MUSLIM_PRO_DARK_CARD = '#003030';
 const MUSLIM_PRO_DARK_TEXT = '#FCFCFC';
 const MUSLIM_PRO_GREEN = '#48A884';
-const MUSLIM_PRO_LIGHT_BG = '#FCF0D8';
+const MUSLIM_PRO_LIGHT_BG = mixHex('#FFFFFF', MUSLIM_PRO_GREEN, 0.08);
 const MUSLIM_PRO_LIGHT_TEXT = '#1A1A1A';
 
 export const Colors = {
@@ -40,11 +44,11 @@ export const Colors = {
     mistakeModerate: '#D9762B',
     mistakeLow: '#C9A23B',
     recitationHighlight: '#DC7702',
-    // Derived from the real background rather than kept as its old fixed
-    // value -- `#FBEBD7` read fine against the app's previous pure-white
-    // background but all but disappeared against the new warm cream one
-    // (the two were nearly identical), so this mixes enough of the real
-    // highlight color in to stay visible on whatever the background is.
+    // Derived from the real background rather than a fixed value, so it
+    // stays visibly distinct whatever the background actually is instead
+    // of silently matching it (the previous fixed `#FBEBD7` nearly
+    // vanished against an earlier cream background this app no longer
+    // uses -- see MUSLIM_PRO_LIGHT_BG's own comment above).
     recitationHighlightMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#DC7702', 0.22),
   },
   dark: {

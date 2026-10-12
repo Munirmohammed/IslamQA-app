@@ -66,8 +66,7 @@ function JuzHeader({ juz, collapsed, onToggle }: { juz: number; collapsed: boole
   return (
     <Pressable onPress={onToggle}>
       {({ pressed }) => (
-        <ThemedView
-          style={[styles.juzHeader, { borderColor: theme.border }, pressed && { opacity: 0.7 }]}>
+        <ThemedView type="backgroundSelected" style={[styles.juzHeader, pressed && { opacity: 0.7 }]}>
           <ThemedText type="smallBold" themeColor="textSecondary">
             Juz {juz}
           </ThemedText>
@@ -187,8 +186,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    // Real breathing room on both sides instead of a thin border crammed
+    // against the surrounding rows -- the previous version read as
+    // cramped between one Juz's last surah and the next Juz's header.
+    marginTop: Spacing.four,
+    marginBottom: Spacing.two,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.one,
-    borderBottomWidth: 1,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.card,
   },
 });
