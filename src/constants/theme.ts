@@ -7,17 +7,34 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/** Muslim Pro's actual palette, measured directly from its real Play
+ * Store screenshots (pixel-sampled via Pillow, not eyeballed) --
+ * `#003030`/`#002424` dominate its dark "Today"/Prayers screens (a deep
+ * forest teal, not navy or near-black), `#48A884` is its real accent
+ * green, and `#FCF0D8` is the actual cream of its "Paper" Quran reading
+ * theme. Replaces this app's previous white/near-black palette with
+ * these measured values directly as the app's own light/dark themes
+ * (not a buried toggle), so this cascades through every screen that
+ * already uses ThemedView/ThemedText/useTheme -- the same leverage point
+ * as the reading-theme colors, applied app-wide this time. */
+const MUSLIM_PRO_DARK_BG = '#002424';
+const MUSLIM_PRO_DARK_CARD = '#003030';
+const MUSLIM_PRO_DARK_TEXT = '#FCFCFC';
+const MUSLIM_PRO_GREEN = '#48A884';
+const MUSLIM_PRO_LIGHT_BG = '#FCF0D8';
+const MUSLIM_PRO_LIGHT_TEXT = '#1A1A1A';
+
 export const Colors = {
   light: {
-    text: '#1A1F1C',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: MUSLIM_PRO_LIGHT_TEXT,
+    background: MUSLIM_PRO_LIGHT_BG,
+    backgroundElement: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.06),
+    backgroundSelected: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.12),
+    textSecondary: mixHex(MUSLIM_PRO_LIGHT_TEXT, MUSLIM_PRO_LIGHT_BG, 0.45),
     primary: '#0F6B4F',
-    primaryMuted: '#E3F1EC',
+    primaryMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#0F6B4F', 0.14),
     accent: '#C9A24B',
-    border: '#E2E4E1',
+    border: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.1),
     error: '#C0392B',
     success: '#2E8B57',
     mistakeModerate: '#D9762B',
@@ -26,15 +43,15 @@ export const Colors = {
     recitationHighlightMuted: '#FBEBD7',
   },
   dark: {
-    text: '#F2F3F1',
-    background: '#0B0F0D',
-    backgroundElement: '#161B18',
-    backgroundSelected: '#212825',
-    textSecondary: '#9AA39D',
-    primary: '#2FA67D',
-    primaryMuted: '#12241D',
+    text: MUSLIM_PRO_DARK_TEXT,
+    background: MUSLIM_PRO_DARK_BG,
+    backgroundElement: MUSLIM_PRO_DARK_CARD,
+    backgroundSelected: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.1),
+    textSecondary: '#A8C4B8',
+    primary: MUSLIM_PRO_GREEN,
+    primaryMuted: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_GREEN, 0.2),
     accent: '#D8B463',
-    border: '#242B27',
+    border: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.12),
     error: '#E0574A',
     success: '#3DAF72',
     mistakeModerate: '#E68A42',
