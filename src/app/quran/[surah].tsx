@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { SurahAudioBar } from '@/features/audio/surah-audio-bar';
 import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
@@ -68,18 +68,16 @@ export default function SurahDetailScreen() {
         {error && <EmptyState icon="cloud-offline-outline" message="Couldn't load this surah." />}
 
         {surah && (
-          <FlashList
-            data={surah.ayahs}
-            keyExtractor={(item) => item.key}
-            renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
-            ListHeaderComponent={
-              <ThemedView type="backgroundElement" style={styles.audioBar}>
-                <SurahAudioBar surahNumber={surahNumber} totalAyahs={surah.ayahs.length} />
-              </ThemedView>
-            }
-          />
+          <>
+            <FlashList
+              data={surah.ayahs}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
+              contentContainerStyle={styles.listContent}
+              ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
+            />
+            <SurahAudioBar surahNumber={surahNumber} totalAyahs={surah.ayahs.length} />
+          </>
         )}
       </SafeAreaView>
     </ThemedView>
@@ -92,6 +90,14 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    // Explicit, not relying on React Native's native-only default of
+    // `position: relative` -- react-native-web doesn't always carry that
+    // default through a third-party SafeAreaView, and the floating audio
+    // pill (position: absolute) needs a bounded, viewport-sized ancestor
+    // to anchor to, not the full scrollable page height, or its
+    // `bottom: ...` offset resolves against the wrong box entirely.
+    position: 'relative',
+    overflow: 'hidden',
   },
   skeletonList: {
     gap: Spacing.two,
@@ -100,12 +106,10 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-  },
-  audioBar: {
-    borderRadius: Radius.card,
-    padding: Spacing.four,
-    marginBottom: Spacing.three,
+    paddingTop: Spacing.three,
+    // Extra bottom room so the last ayah cards don't end up hidden behind
+    // the floating audio pill, which sits fixed above the safe area.
+    paddingBottom: Spacing.six + 16,
   },
   separator: {
     height: Spacing.three,

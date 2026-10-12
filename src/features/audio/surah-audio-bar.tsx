@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useReciterStore } from '@/stores/reciter-store';
 
@@ -26,15 +26,19 @@ interface SurahAudioBarProps {
   totalAyahs: number;
 }
 
-/** A "Play surah" transport control with a reciter picker, reusable
- * across any surah-reading screen. Defaults to Al-Afasy until the user
- * picks a different reciter (see reciter-store.ts); that choice then also
- * applies to every per-ayah Listen button on the same screen. */
+/** A floating, centered capsule fixed above the bottom safe area --
+ * Quran.com's real audio-control shape, confirmed from their own
+ * open-source app (AudioBannerViewUI.swift): a compact pill, not a
+ * full-width bar, max ~500pt wide. Tapping the reciter-name area expands
+ * a panel above the pill with the reciter picker, speed control, and A/B
+ * repeat drill mode; the play/pause button and download badge stay on
+ * the pill itself so the core action never needs the panel open. */
 export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
   const theme = useTheme();
   const storedReciterId = useReciterStore((s) => s.reciterId);
   const storedReciterName = useReciterStore((s) => s.reciterName);
   const setReciter = useReciterStore((s) => s.setReciter);
+  const [expanded, setExpanded] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
 
   const reciterId = storedReciterId ?? DEFAULT_RECITER_ID;
@@ -56,8 +60,38 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
   }, [player, speed]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.row}>
+    <View style={styles.floatingContainer} pointerEvents="box-none">
+      {expanded && (
+        <ThemedView type="backgroundElement" style={styles.panel}>
+          <ThemedText type="smallBold">Reciter</ThemedText>
+          <Pressable onPress={() => setShowPicker((v) => !v)} hitSlop={8}>
+            <ThemedText type="small" themeColor="primary">
+              {reciterName} · {showPicker ? 'Hide list' : 'Change'}
+            </ThemedText>
+          </Pressable>
+          {showPicker && reciters && (
+            <ScrollView style={styles.pickerList} contentContainerStyle={styles.pickerListContent}>
+              {reciters.map((reciter) => (
+                <ReciterRow
+                  key={reciter.id}
+                  reciter={reciter}
+                  selected={reciter.id === reciterId}
+                  onPress={() => {
+                    setReciter(reciter.id, reciter.name);
+                    setShowPicker(false);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          )}
+
+          <SpeedControl speed={speed} onChange={setSpeed} />
+
+          <RangeRepeat surahNumber={surahNumber} totalAyahs={totalAyahs} reciterId={reciterId} />
+        </ThemedView>
+      )}
+
+      <ThemedView type="backgroundElement" style={styles.pill}>
         <Pressable
           onPress={() => (status.playing ? player.pause() : player.play())}
           disabled={isLoading || isError}
@@ -68,46 +102,26 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
               style={[styles.playButton, (pressed || isLoading || isError) && styles.disabled]}>
               <Ionicons
                 name={status.playing ? 'pause' : 'play'}
-                size={20}
+                size={18}
                 color={status.playing ? theme.recitationHighlight : theme.primary}
               />
             </ThemedView>
           )}
         </Pressable>
 
-        <View style={styles.label}>
-          <ThemedText type="smallBold">
-            {isLoading ? 'Loading audio…' : isError ? 'Audio unavailable for this surah' : 'Play surah'}
+        <Pressable style={styles.pillLabel} onPress={() => setExpanded((v) => !v)} hitSlop={4}>
+          <ThemedText type="smallBold" numberOfLines={1}>
+            {isLoading ? 'Loading…' : isError ? 'Unavailable' : reciterName}
           </ThemedText>
-          <Pressable onPress={() => setShowPicker((v) => !v)} hitSlop={8}>
-            <ThemedText type="small" themeColor="primary">
-              {reciterName} · Change
-            </ThemedText>
-          </Pressable>
-        </View>
+          <Ionicons
+            name={expanded ? 'chevron-down' : 'chevron-up'}
+            size={14}
+            color={theme.textSecondary}
+          />
+        </Pressable>
 
         <DownloadAudioBadge surahNumber={surahNumber} reciterId={reciterId} />
-      </View>
-
-      <SpeedControl speed={speed} onChange={setSpeed} />
-
-      <RangeRepeat surahNumber={surahNumber} totalAyahs={totalAyahs} reciterId={reciterId} />
-
-      {showPicker && reciters && (
-        <ScrollView style={styles.pickerList} contentContainerStyle={styles.pickerListContent}>
-          {reciters.map((reciter) => (
-            <ReciterRow
-              key={reciter.id}
-              reciter={reciter}
-              selected={reciter.id === reciterId}
-              onPress={() => {
-                setReciter(reciter.id, reciter.name);
-                setShowPicker(false);
-              }}
-            />
-          ))}
-        </ScrollView>
-      )}
+      </ThemedView>
     </View>
   );
 }
@@ -145,7 +159,7 @@ function DownloadAudioBadge({ surahNumber, reciterId }: DownloadAudioBadgeProps)
       style={styles.downloadBadge}>
       <Ionicons
         name={isDownloaded ? 'checkmark-circle' : 'download-outline'}
-        size={20}
+        size={18}
         color={isDownloaded ? theme.primary : theme.textSecondary}
       />
     </Pressable>
@@ -153,30 +167,50 @@ function DownloadAudioBadge({ surahNumber, reciterId }: DownloadAudioBadgeProps)
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: Spacing.two,
+  floatingContainer: {
+    position: 'absolute',
+    left: Spacing.four,
+    right: Spacing.four,
+    bottom: Spacing.three,
+    alignItems: 'center',
   },
-  row: {
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.two,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    width: '100%',
+    maxWidth: 420,
+  },
+  panel: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: Radius.card,
+    padding: Spacing.four,
     gap: Spacing.three,
+    marginBottom: Spacing.two,
   },
   playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabled: {
     opacity: 0.5,
   },
-  label: {
+  pillLabel: {
     flex: 1,
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
   pickerList: {
-    maxHeight: 260,
+    maxHeight: 220,
   },
   pickerListContent: {
     gap: Spacing.two,

@@ -40,6 +40,7 @@ export function SpeedControl({ speed, onChange }: SpeedControlProps) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   chip: {
