@@ -163,8 +163,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
     // Extra bottom room so the last ayah cards don't end up hidden behind
-    // the floating audio pill, which sits fixed above the safe area.
-    paddingBottom: Spacing.six + 16,
+    // the full-width audio bar, which sits fixed at the bottom edge and
+    // pads itself for the home-indicator inset -- sized for that
+    // worst-case height (bar content + its own bottom safe-area padding).
+    paddingBottom: Spacing.six + 40,
   },
   themeToggleRow: {
     flexDirection: 'row',

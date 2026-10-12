@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Radius, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useReciterStore } from '@/stores/reciter-store';
 
@@ -26,15 +27,16 @@ interface SurahAudioBarProps {
   totalAyahs: number;
 }
 
-/** A floating, centered capsule fixed above the bottom safe area --
- * Quran.com's real audio-control shape, confirmed from their own
- * open-source app (AudioBannerViewUI.swift): a compact pill, not a
- * full-width bar, max ~500pt wide. Tapping the reciter-name area expands
- * a panel above the pill with the reciter picker, speed control, and A/B
- * repeat drill mode; the play/pause button and download badge stay on
- * the pill itself so the core action never needs the panel open. */
+/** A full-width bar flush with the bottom edge -- Muslim Pro's real audio-
+ * control shape (confirmed from its own Play Store screenshots), not
+ * Quran.com's floating capsule pill this app used in an earlier phase.
+ * Tapping the reciter-name area expands a panel above the bar with the
+ * reciter picker, speed control, and A/B repeat drill mode; the
+ * play/pause button and download badge stay on the bar itself so the
+ * core action never needs the panel open. */
 export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const storedReciterId = useReciterStore((s) => s.reciterId);
   const storedReciterName = useReciterStore((s) => s.reciterName);
   const setReciter = useReciterStore((s) => s.setReciter);
@@ -91,7 +93,9 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
         </ThemedView>
       )}
 
-      <ThemedView type="backgroundElement" style={styles.pill}>
+      <ThemedView
+        type="backgroundElement"
+        style={[styles.bar, { paddingBottom: Spacing.three + insets.bottom }]}>
         <Pressable
           onPress={() => (status.playing ? player.pause() : player.play())}
           disabled={isLoading || isError}
@@ -109,7 +113,7 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
           )}
         </Pressable>
 
-        <Pressable style={styles.pillLabel} onPress={() => setExpanded((v) => !v)} hitSlop={4}>
+        <Pressable style={styles.barLabel} onPress={() => setExpanded((v) => !v)} hitSlop={4}>
           <ThemedText type="smallBold" numberOfLines={1}>
             {isLoading ? 'Loading…' : isError ? 'Unavailable' : reciterName}
           </ThemedText>
@@ -118,6 +122,12 @@ export function SurahAudioBar({ surahNumber, totalAyahs }: SurahAudioBarProps) {
             size={14}
             color={theme.textSecondary}
           />
+        </Pressable>
+
+        <Pressable onPress={() => setExpanded(true)} hitSlop={8}>
+          <ThemedText type="small" themeColor="textSecondary">
+            {speed}x
+          </ThemedText>
         </Pressable>
 
         <DownloadAudioBadge surahNumber={surahNumber} reciterId={reciterId} />
@@ -169,28 +179,27 @@ function DownloadAudioBadge({ surahNumber, reciterId }: DownloadAudioBadgeProps)
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    left: Spacing.four,
-    right: Spacing.four,
-    bottom: Spacing.three,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
   },
-  pill: {
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
-    borderRadius: Radius.pill,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
+    gap: Spacing.three,
+    paddingTop: Spacing.three,
+    paddingHorizontal: Spacing.four,
     width: '100%',
-    maxWidth: 420,
+    maxWidth: MaxContentWidth,
   },
   panel: {
     width: '100%',
-    maxWidth: 420,
-    borderRadius: Radius.card,
+    maxWidth: MaxContentWidth,
+    borderTopLeftRadius: Radius.card,
+    borderTopRightRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
-    marginBottom: Spacing.two,
   },
   playButton: {
     width: 36,
@@ -202,11 +211,10 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-  pillLabel: {
+  barLabel: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 4,
   },
   pickerList: {
