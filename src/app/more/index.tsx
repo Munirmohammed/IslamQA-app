@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FeatureCard } from '@/components/feature-card';
+import { SettingsSection, type SettingsRowItem } from '@/components/settings-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -11,23 +10,21 @@ import { useLogin, useLogout, useMe, useRegister } from '@/features/auth/api';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
 
-const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; description: string; href: string }[] = [
-  { icon: 'time-outline', label: 'Prayer Times', description: 'Today’s five prayers, by your location', href: '/more/prayer-times' },
-  { icon: 'checkmark-circle-outline', label: 'Salah & Fasting Tracker', description: 'Daily checklist and weekly history', href: '/more/salah-tracker' },
-  { icon: 'compass-outline', label: 'Qibla Direction', description: 'Compass pointing toward the Kaaba', href: '/more/qibla' },
-  { icon: 'calendar-outline', label: 'Islamic Calendar', description: 'Hijri date and Ramadan countdown', href: '/more/calendar' },
-  { icon: 'flower-outline', label: 'Dua & Azkar', description: 'Morning, evening, and daily supplications', href: '/more/azkar' },
-  { icon: 'book-outline', label: 'Hadith', description: 'Browse the 10 major collections', href: '/more/hadith' },
-  { icon: 'cash-outline', label: 'Zakat Calculator', description: 'Work out what you owe this year', href: '/more/zakat' },
+const TOOLS: SettingsRowItem[] = [
+  { icon: 'time-outline', label: 'Prayer Times', href: '/more/prayer-times' },
+  { icon: 'checkmark-circle-outline', label: 'Salah & Fasting Tracker', href: '/more/salah-tracker' },
+  { icon: 'compass-outline', label: 'Qibla Direction', href: '/more/qibla' },
+  { icon: 'calendar-outline', label: 'Islamic Calendar', href: '/more/calendar' },
+  { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },
+  { icon: 'book-outline', label: 'Hadith', href: '/more/hadith' },
+  { icon: 'cash-outline', label: 'Zakat Calculator', href: '/more/zakat' },
 ];
 
 function IslamicTools() {
   return (
     <View style={styles.toolsSection}>
       <ThemedText type="smallBold">Islamic Tools</ThemedText>
-      {TOOLS.map((tool) => (
-        <FeatureCard key={tool.href} {...tool} />
-      ))}
+      <SettingsSection items={TOOLS} />
     </View>
   );
 }
