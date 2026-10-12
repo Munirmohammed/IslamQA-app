@@ -110,6 +110,60 @@ export const Radius = {
   pill: 999,
 } as const;
 
+/** Reading-screen color themes, distinct from the app's own light/dark mode
+ * -- a separate preference for the Mushaf reading view only. Sourced from
+ * Quran.com's own open-source iOS app (github.com/quran/quran-ios,
+ * UI/NoorUI/Sources/Colors/Colors.xcassets/theme-*.colorset), whose named
+ * themes are Original/Paper/Calm/Focus/Quiet. Their asset catalog stores
+ * Display P3 float components, not hex; these are read off as sRGB
+ * approximations (close enough for these near-neutral tones -- no wide-gamut
+ * saturated colors here). Their own `ThemeService` always forces the device
+ * into dark mode when Quiet is selected, so Quiet's real on-screen colors
+ * are its *dark*-appearance asset entry, not the lighter, effectively-unused
+ * one its light-appearance entry lists -- that's why Quiet below is a
+ * near-black page with dim gray text, not a mid-gray one. */
+function mixHex(from: string, to: string, amount: number): string {
+  const a = parseInt(from.slice(1), 16);
+  const b = parseInt(to.slice(1), 16);
+  const channel = (shift: number) => {
+    const av = (a >> shift) & 0xff;
+    const bv = (b >> shift) & 0xff;
+    return Math.round(av + (bv - av) * amount);
+  };
+  return `#${[16, 8, 0].map((shift) => channel(shift).toString(16).padStart(2, '0')).join('')}`;
+}
+
+export type ReadingThemeId = 'system' | 'original' | 'paper' | 'calm' | 'focus' | 'quiet';
+
+const READING_THEME_BASE = {
+  original: { label: 'Original', background: '#FFFFFF', text: '#000000' },
+  paper: { label: 'Paper', background: '#EEEDED', text: '#1D1A1A' },
+  calm: { label: 'Calm', background: '#EEE2CC', text: '#32281E' },
+  focus: { label: 'Focus', background: '#FEFCF5', text: '#141202' },
+  quiet: { label: 'Quiet', background: '#000000', text: '#928D92' },
+} satisfies Record<Exclude<ReadingThemeId, 'system'>, { label: string; background: string; text: string }>;
+
+// A card surface that reads as a distinct layer on the page, and a softened
+// secondary text tone, both mixed off the two colors each theme already
+// defines rather than hand-tuning a 6th/7th hex value per theme -- the same
+// "derive, don't hardcode" approach Quran.com's own UIColor variants
+// (`.secondaryLabelVariant()` etc.) take.
+export const ReadingThemes = Object.fromEntries(
+  Object.entries(READING_THEME_BASE).map(([id, { label, background, text }]) => [
+    id,
+    {
+      label,
+      background,
+      text,
+      backgroundElement: mixHex(background, text, 0.06),
+      textSecondary: mixHex(text, background, 0.35),
+    },
+  ])
+) as Record<
+  Exclude<ReadingThemeId, 'system'>,
+  { label: string; background: string; backgroundElement: string; text: string; textSecondary: string }
+>;
+
 /** Cards had no depth at all before this -- flat `backgroundElement`
  * fills on a flat background. iOS reads `shadow*`, Android reads
  * `elevation`; both are set so either platform gets the right look.

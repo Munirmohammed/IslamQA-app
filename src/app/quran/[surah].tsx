@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,11 +10,15 @@ import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ReadingThemes, Spacing, type ReadingThemeId } from '@/constants/theme';
 import { SurahAudioBar } from '@/features/audio/surah-audio-bar';
 import { useMarkAyahsRead } from '@/features/khatmah/api';
 import { useSurah } from '@/features/quran/api';
+import { ReadingThemeOverrideProvider, useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
+import { useReadingThemeStore } from '@/stores/reading-theme-store';
+
+const READING_THEME_IDS: ReadingThemeId[] = ['system', 'original', 'paper', 'calm', 'focus', 'quiet'];
 
 export default function SurahDetailScreen() {
   const { surah: surahParam } = useLocalSearchParams<{ surah: string }>();
@@ -21,6 +26,11 @@ export default function SurahDetailScreen() {
   const { data: surah, isLoading, error } = useSurah(surahNumber);
   const accessToken = useAuthStore((s) => s.accessToken);
   const markAyahsRead = useMarkAyahsRead();
+  const theme = useTheme();
+  const readingThemeId = useReadingThemeStore((s) => s.themeId);
+  const setReadingThemeId = useReadingThemeStore((s) => s.setThemeId);
+  const [showThemePicker, setShowThemePicker] = useState(false);
+  const readingTheme = readingThemeId === 'system' ? null : ReadingThemes[readingThemeId];
 
   // Opening a surah's reading screen counts as reading it, toward khatmah
   // progress -- the same coarse-grained "a concrete action happened" signal
@@ -39,7 +49,7 @@ export default function SurahDetailScreen() {
   }, [accessToken, surah, surahNumber]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, readingTheme && { backgroundColor: readingTheme.background }]}>
       <Stack.Screen
         options={{
           title: surah?.surah_name_en ?? '',
@@ -56,6 +66,46 @@ export default function SurahDetailScreen() {
           ),
         }}
       />
+
+      {/* An in-flow toggle, not a native headerRight action: this app's web
+          tab bar (app-tabs.web.tsx) is an absolutely-positioned floating pill
+          that overlaps the same top region as every screen's native header,
+          silently swallowing clicks meant for it on web (a pre-existing bug,
+          not scoped to fix here) -- an in-flow row is reachable regardless. */}
+      <Pressable onPress={() => setShowThemePicker((v) => !v)} style={styles.themeToggleRow} hitSlop={8}>
+        <Ionicons name="color-palette-outline" size={16} color={theme.primary} />
+        <ThemedText type="small" themeColor="primary">
+          Reading theme{readingTheme ? `: ${readingTheme.label}` : ''}
+        </ThemedText>
+      </Pressable>
+
+      {showThemePicker && (
+        <View style={styles.themePickerRow}>
+          {READING_THEME_IDS.map((id) => {
+            const swatch = id === 'system' ? null : ReadingThemes[id];
+            const selected = id === readingThemeId;
+            return (
+              <Pressable
+                key={id}
+                onPress={() => {
+                  setReadingThemeId(id);
+                  setShowThemePicker(false);
+                }}
+                hitSlop={4}>
+                <View
+                  style={[
+                    styles.swatch,
+                    { backgroundColor: swatch ? swatch.background : theme.background },
+                    { borderColor: selected ? theme.primary : theme.border },
+                  ]}>
+                  {id === 'system' && <Ionicons name="phone-portrait-outline" size={14} color={theme.text} />}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {isLoading && (
           <View style={styles.skeletonList}>
@@ -69,13 +119,18 @@ export default function SurahDetailScreen() {
 
         {surah && (
           <>
-            <FlashList
-              data={surah.ayahs}
-              keyExtractor={(item) => item.key}
-              renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
-              contentContainerStyle={styles.listContent}
-              ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
-            />
+            <ReadingThemeOverrideProvider value={readingTheme}>
+              <FlashList
+                data={surah.ayahs}
+                keyExtractor={(item) => item.key}
+                renderItem={({ item }) => <AyahCard ayah={item} surahNameEn={surah.surah_name_en} />}
+                contentContainerStyle={[
+                  styles.listContent,
+                  readingTheme && { backgroundColor: readingTheme.background },
+                ]}
+                ItemSeparatorComponent={() => <ThemedView style={styles.separator} />}
+              />
+            </ReadingThemeOverrideProvider>
             <SurahAudioBar surahNumber={surahNumber} totalAyahs={surah.ayahs.length} />
           </>
         )}
@@ -110,6 +165,28 @@ const styles = StyleSheet.create({
     // Extra bottom room so the last ayah cards don't end up hidden behind
     // the floating audio pill, which sits fixed above the safe area.
     paddingBottom: Spacing.six + 16,
+  },
+  themeToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.one,
+  },
+  themePickerRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.two,
+  },
+  swatch: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   separator: {
     height: Spacing.three,
