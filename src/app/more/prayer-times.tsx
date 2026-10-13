@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useSalahHistory, useTodaySalah, useUpdateSalah } from '@/features/salah/api';
 import { useTheme } from '@/hooks/use-theme';
+import { toHijri } from '@/lib/hijri';
 import {
   findNextPrayer,
   formatCountdown,
@@ -61,6 +62,7 @@ export default function PrayerTimesScreen() {
 
   const prayedCount = today ? TRACKED_PRAYERS.filter((key) => today[key]).length : 0;
   const allPrayed = today ? prayedCount === TRACKED_PRAYERS.length : false;
+  const hijriToday = toHijri(now);
 
   return (
     <ThemedView style={styles.container}>
@@ -68,12 +70,22 @@ export default function PrayerTimesScreen() {
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <ThemedText type="title">Prayers</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} ·{' '}
+            {hijriToday.day} {hijriToday.monthName} {hijriToday.year} AH
+          </ThemedText>
 
           <LocationPicker />
 
           {prayers && nextPrayer && (
-            <View style={styles.summaryRow}>
-              <ThemedView type="backgroundElement" style={styles.nowCard}>
+            // One continuous card, not two separate ones with a gap --
+            // Muslim Pro's own Prayers screen (confirmed via its Play
+            // Store screenshots) joins the "Now" summary and the prayed
+            // ring into a single card split by one internal divider, and
+            // a live render of the old two-card version showed just how
+            // fragmented/flat that reads stacked above the row list below.
+            <ThemedView type="backgroundElement" style={styles.summaryCard}>
+              <View style={styles.nowHalf}>
                 <ThemedText type="small" themeColor="textSecondary">
                   Now
                 </ThemedText>
@@ -84,21 +96,24 @@ export default function PrayerTimesScreen() {
                 <ThemedText type="small" themeColor="textSecondary">
                   in {formatCountdown(nextPrayer.time.getTime() - now.getTime())}
                 </ThemedText>
-              </ThemedView>
+              </View>
 
               {accessToken && today && (
-                <ThemedView type="backgroundElement" style={styles.ringCard}>
-                  <ProgressRing progress={prayedCount / TRACKED_PRAYERS.length} size={72}>
-                    <ThemedText type="smallBold">
-                      {prayedCount}/{TRACKED_PRAYERS.length}
+                <>
+                  <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
+                  <View style={styles.ringHalf}>
+                    <ProgressRing progress={prayedCount / TRACKED_PRAYERS.length} size={72}>
+                      <ThemedText type="smallBold">
+                        {prayedCount}/{TRACKED_PRAYERS.length}
+                      </ThemedText>
+                    </ProgressRing>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      prayed
                     </ThemedText>
-                  </ProgressRing>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    prayed
-                  </ThemedText>
-                </ThemedView>
+                  </View>
+                </>
               )}
-            </View>
+            </ThemedView>
           )}
 
           {!accessToken && (
@@ -121,24 +136,26 @@ export default function PrayerTimesScreen() {
           )}
 
           {prayers && (
-            <View style={styles.list}>
-              {prayers.map((prayer) => {
+            <ThemedView type="backgroundElement" style={styles.listCard}>
+              {prayers.map((prayer, index) => {
                 const isNext = prayer.key === nextPrayer?.key;
                 const trackedKey = isTrackedPrayer(prayer.key) ? prayer.key : null;
                 const checked = trackedKey && today ? today[trackedKey] : false;
                 return (
-                  <PrayerRow
-                    key={prayer.key}
-                    prayer={prayer}
-                    isNext={isNext}
-                    trackable={!!trackedKey && !!accessToken && !!today}
-                    checked={checked}
-                    disabled={update.isPending}
-                    onToggle={() => trackedKey && update.mutate({ [trackedKey]: !checked })}
-                  />
+                  <Fragment key={prayer.key}>
+                    {index > 0 && <View style={[styles.listDivider, { backgroundColor: theme.border }]} />}
+                    <PrayerRow
+                      prayer={prayer}
+                      isNext={isNext}
+                      trackable={!!trackedKey && !!accessToken && !!today}
+                      checked={checked}
+                      disabled={update.isPending}
+                      onToggle={() => trackedKey && update.mutate({ [trackedKey]: !checked })}
+                    />
+                  </Fragment>
                 );
               })}
-            </View>
+            </ThemedView>
           )}
 
           {accessToken && today && !allPrayed && (
@@ -209,11 +226,10 @@ function PrayerRow({
   return (
     <Pressable onPress={onToggle} disabled={!trackable || disabled} hitSlop={4}>
       {({ pressed }) => (
-        <ThemedView
-          type="backgroundElement"
+        <View
           style={[
-            styles.row,
-            isNext && { borderColor: theme.primary, borderWidth: 2 },
+            styles.listRow,
+            isNext && { backgroundColor: theme.primaryMuted },
             pressed && styles.pressed,
           ]}>
           <View style={styles.rowLeft}>
@@ -229,7 +245,7 @@ function PrayerRow({
           <ThemedText type={isNext ? 'smallBold' : 'default'} themeColor={isNext ? 'primary' : 'text'}>
             {prayer.time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
           </ThemedText>
-        </ThemedView>
+        </View>
       )}
     </Pressable>
   );
@@ -277,30 +293,48 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
     gap: Spacing.three,
   },
-  summaryRow: {
+  summaryCard: {
     flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  nowCard: {
-    flex: 1,
     borderRadius: Radius.card,
+  },
+  nowHalf: {
+    flex: 1,
     padding: Spacing.four,
     gap: 2,
   },
-  nowTime: {
-    fontSize: 28,
-    lineHeight: 32,
+  summaryDivider: {
+    width: StyleSheet.hairlineWidth,
+    marginVertical: Spacing.three,
   },
-  ringCard: {
+  ringHalf: {
     width: 120,
-    borderRadius: Radius.card,
     padding: Spacing.three,
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.one,
   },
-  list: {
-    gap: Spacing.two,
+  nowTime: {
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  // A single continuous card for the prayer-row list (with `listDivider`
+  // hairlines between rows), not one floating pill per prayer -- matching
+  // both Muslim Pro's actual Prayers screen and this app's own grouped
+  // settings-list convention (settings-row.tsx) instead of a third, flatter
+  // list idiom unique to this screen.
+  listCard: {
+    borderRadius: Radius.card,
+    overflow: 'hidden',
+  },
+  listRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+  },
+  listDivider: {
+    height: StyleSheet.hairlineWidth,
   },
   row: {
     flexDirection: 'row',
@@ -309,8 +343,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
   rowLeft: {
     flexDirection: 'row',

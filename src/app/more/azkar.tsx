@@ -1,109 +1,121 @@
 import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { ThemedView } from '@/components/themed-view';
+import { AzkarTileTints, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { AZKAR_CATEGORIES } from '@/lib/azkar-data';
 
-// Muslim Pro's actual Azkar screen (its own Play Store screenshots) is a
-// pastel multi-color category grid, not a single-brand-color list -- the
-// exact tones in that screenshot sit behind a blended marketing photo, so
-// precise pixel-sampling (the method used for the app's core palette)
-// isn't reliable here. This is a reasonable pastel set inspired by what's
-// visible, applied cyclically per category rather than hand-picked per
-// name, and an icon chosen per category's actual meaning.
-const TILE_COLORS = ['#D9EDD9', '#F0E6D2', '#E3DCF0', '#F5E6B8', '#D7E3E8'];
-
+/** Maps each category name to an Ionicons glyph standing in for Muslim
+ * Pro's actual tile illustrations (small colored drawings -- hands, a
+ * prayer mat, a plane, a drink -- that aren't buildable as fabricated
+ * assets here). `cube-outline` for Hajj & Umrah reuses the same glyph the
+ * Qibla screen already uses for the Kaaba, rather than a second one-off. */
 const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   'Morning & Evening': 'partly-sunny-outline',
   'Home & Family': 'home-outline',
   'Food & Drink': 'restaurant-outline',
-  'Joy & Distress': 'happy-outline',
+  'Joy & Distress': 'people-outline',
   Travel: 'airplane-outline',
-  Prayer: 'hand-left-outline',
-  'Praising Allah': 'star-outline',
+  Prayer: 'body-outline',
+  'Praising Allah': 'sparkles-outline',
   'Hajj & Umrah': 'cube-outline',
   'Good Etiquette': 'thumbs-up-outline',
   Nature: 'leaf-outline',
   'Sickness & Death': 'medkit-outline',
 };
 
+/** Muslim Pro's actual Dua/Azkar screen (confirmed via its real Play
+ * Store screenshots) is a pastel tile grid -- icon, name, chapter count
+ * per tile -- not a plain single-column settings-style list, which is
+ * what this replaces. Tints cycle through `AzkarTileTints` (derived from
+ * this app's own existing accent hues, see theme.ts) instead of a flat
+ * card color repeated 11 times. */
 export default function AzkarScreen() {
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ThemedText type="title" style={styles.title}>
-        Dua &amp; Azkar
-      </ThemedText>
+  const theme = useTheme();
 
-      <FlashList
-        data={AZKAR_CATEGORIES}
-        numColumns={2}
-        keyExtractor={(_, index) => String(index)}
-        renderItem={({ item, index }) => (
-          <Link href={{ pathname: '/more/azkar-category', params: { index } }} asChild>
-            <Pressable style={styles.tileWrapper}>
-              {({ pressed }) => (
-                <View
-                  style={[
-                    styles.tile,
-                    { backgroundColor: TILE_COLORS[index % TILE_COLORS.length] },
-                    pressed && styles.pressed,
-                  ]}>
-                  <Ionicons
-                    name={CATEGORY_ICONS[item.name] ?? 'book-outline'}
-                    size={22}
-                    color="#1A1A1A"
-                  />
-                  <ThemedText type="smallBold" style={styles.tileText}>
-                    {item.name}
-                  </ThemedText>
-                  <ThemedText type="small" style={styles.tileText}>
-                    {item.chapters.length} dua{item.chapters.length === 1 ? '' : 's'}
-                  </ThemedText>
-                </View>
-              )}
-            </Pressable>
-          </Link>
-        )}
-        contentContainerStyle={styles.listContent}
-      />
-    </SafeAreaView>
+  return (
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText type="title" style={styles.title}>
+            Dua &amp; Azkar
+          </ThemedText>
+          <ThemedText themeColor="textSecondary" style={styles.subtitle}>
+            Start every action with a dua.
+          </ThemedText>
+
+          <View style={styles.grid}>
+            {AZKAR_CATEGORIES.map((category, index) => {
+              const tint = AzkarTileTints[index % AzkarTileTints.length];
+              const icon = CATEGORY_ICONS[category.name] ?? 'flower-outline';
+              return (
+                <Link
+                  key={category.name}
+                  href={{ pathname: '/more/azkar-category', params: { index } }}
+                  asChild>
+                  <Pressable style={styles.gridItem}>
+                    {({ pressed }) => (
+                      <View style={[styles.tile, { backgroundColor: theme[tint] }, pressed && styles.pressed]}>
+                        <Ionicons name={icon} size={26} color={theme.primary} />
+                        <ThemedText type="smallBold" numberOfLines={2} style={styles.tileLabel}>
+                          {category.name}
+                        </ThemedText>
+                        <ThemedText type="small" themeColor="textSecondary">
+                          {category.chapters.length} chapter{category.chapters.length === 1 ? '' : 's'}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </Pressable>
+                </Link>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.four,
     paddingTop: Spacing.six,
+    paddingBottom: Spacing.six,
   },
   title: {
-    paddingHorizontal: Spacing.four,
-    marginBottom: Spacing.three,
+    marginBottom: Spacing.half,
   },
-  listContent: {
-    paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.four,
+  subtitle: {
+    marginBottom: Spacing.four,
   },
-  tileWrapper: {
-    flex: 1,
-    padding: Spacing.one,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.three,
+  },
+  gridItem: {
+    width: '47%',
+    flexGrow: 1,
   },
   tile: {
     borderRadius: Radius.card,
     padding: Spacing.three,
-    gap: 2,
-    minHeight: 96,
+    gap: Spacing.one,
+    minHeight: 112,
     justifyContent: 'space-between',
   },
-  // Tile backgrounds are fixed pastel hexes, independent of the app's own
-  // light/dark theme (same reasoning as the reading themes) -- text on
-  // them is a fixed dark ink, not ThemedText's theme-driven color, since
-  // these tiles don't invert in dark mode.
-  tileText: {
-    color: '#1A1A1A',
+  tileLabel: {
+    marginTop: Spacing.one,
   },
   pressed: {
     opacity: 0.7,

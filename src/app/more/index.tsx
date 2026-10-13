@@ -141,7 +141,15 @@ export default function MoreScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <ThemedText type="title">More</ThemedText>
           <IslamicTools />
-          {accessToken ? <ProfileDetails /> : <AuthForm />}
+          {/* "Account" labels this section the same way "Islamic Tools"
+              labels the one above it -- the login/profile card previously
+              sat directly under the tools list with no heading of its own,
+              reading as an unannounced jump from one list idiom straight
+              into an unrelated card. */}
+          <View style={styles.accountSection}>
+            <ThemedText type="smallBold">Account</ThemedText>
+            {accessToken ? <ProfileDetails /> : <AuthForm />}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -170,6 +178,9 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   toolsSection: {
+    gap: Spacing.two,
+  },
+  accountSection: {
     gap: Spacing.two,
   },
   input: {

@@ -98,7 +98,13 @@ export default function QiblaScreen() {
 
   // Alignment feedback always wins over the cosmetic skin choice -- "you're
   // facing qibla" shouldn't be hidden by whichever ring color is picked.
-  const dialColor = isAligned ? theme.success : (skinColor ?? theme.border);
+  // The ring itself uses `theme.text` as its unpicked-skin default, not
+  // `theme.border` -- confirmed against Muslim Pro's own Qibla screenshots,
+  // its dial ring is a bold, high-contrast line, not a faint hairline;
+  // `theme.border` (this app's subtle divider color, ~10% mixed into the
+  // page background) read as a washed-out, barely-visible ring in a live
+  // render, nothing like that.
+  const dialColor = isAligned ? theme.success : (skinColor ?? theme.text);
   const arrowColor = isAligned ? theme.success : (skinColor ?? theme.primary);
 
   return (

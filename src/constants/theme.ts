@@ -50,6 +50,19 @@ export const Colors = {
     // vanished against an earlier cream background this app no longer
     // uses -- see MUSLIM_PRO_LIGHT_BG's own comment above).
     recitationHighlightMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#DC7702', 0.22),
+    // Azkar category-grid tile tints (Muslim Pro's real Dua/Azkar screen,
+    // confirmed via its Play Store screenshots, gives each grid tile a
+    // distinct pastel rather than one flat card color everywhere) --
+    // derived from this app's own existing accent hues already defined
+    // above (green primary, gold accent, the mistake-scale red/orange/
+    // yellow, plus a neutral from text) mixed lightly into the page
+    // background, instead of inventing arbitrary new brand colors.
+    tileTeal: mixHex(MUSLIM_PRO_LIGHT_BG, '#0F6B4F', 0.16),
+    tileGold: mixHex(MUSLIM_PRO_LIGHT_BG, '#C9A24B', 0.22),
+    tileSlate: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.14),
+    tileClay: mixHex(MUSLIM_PRO_LIGHT_BG, '#D9762B', 0.16),
+    tileAmber: mixHex(MUSLIM_PRO_LIGHT_BG, '#C9A23B', 0.2),
+    tileRose: mixHex(MUSLIM_PRO_LIGHT_BG, '#C0392B', 0.12),
   },
   dark: {
     text: MUSLIM_PRO_DARK_TEXT,
@@ -67,8 +80,23 @@ export const Colors = {
     mistakeLow: '#D6B34C',
     recitationHighlight: '#EF911D',
     recitationHighlightMuted: '#2E2112',
+    // Same azkar tile-tint derivation as light, mixed into the dark card
+    // color instead of the light page background -- a subtly-tinted deep
+    // card, not a pastel (a true pastel doesn't read correctly against
+    // this app's dark teal chrome).
+    tileTeal: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_GREEN, 0.22),
+    tileGold: mixHex(MUSLIM_PRO_DARK_CARD, '#D8B463', 0.22),
+    tileSlate: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.14),
+    tileClay: mixHex(MUSLIM_PRO_DARK_CARD, '#E68A42', 0.2),
+    tileAmber: mixHex(MUSLIM_PRO_DARK_CARD, '#D6B34C', 0.2),
+    tileRose: mixHex(MUSLIM_PRO_DARK_CARD, '#E0574A', 0.18),
   },
 } as const;
+
+/** Cycle order for azkar category-grid tiles -- see the `tile*` tokens
+ * above. A plain array (not derived from Object.keys) so the order is
+ * deliberate and stable regardless of how Colors' keys are reordered. */
+export const AzkarTileTints: ThemeColor[] = ['tileTeal', 'tileGold', 'tileSlate', 'tileClay', 'tileAmber', 'tileRose'];
 
 /** Tarteel's own Advanced Analytics documents a 4-tier mistake-frequency
  * scale for "which surahs are strong vs. need more work" -- red (worst) ->
