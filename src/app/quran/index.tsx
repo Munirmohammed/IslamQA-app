@@ -6,15 +6,20 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/empty-state';
+import { RecentsStrip } from '@/components/recents-strip';
 import { Skeleton } from '@/components/skeleton';
 import { SurahListItem } from '@/components/surah-list-item';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
+import { useRecentSurahs } from '@/features/khatmah/api';
 import { useSurahs } from '@/features/quran/api';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuthStore } from '@/stores/auth-store';
 
 import type { SurahSummary } from '@/features/quran/types';
+
+type ViewMode = 'sura' | 'juz';
 
 function QuickAction({ href, icon, label }: { href: Href; icon: keyof typeof Ionicons.glyphMap; label: string }) {
   const theme = useTheme();
@@ -42,7 +47,7 @@ type ListRow = { kind: 'header'; juz: number; collapsed: boolean } | { kind: 'su
  * convention. Returns the sticky header positions alongside the flattened
  * rows since FlashList wants indices into the final array, not juz
  * numbers. */
-function buildRows(surahs: SurahSummary[], collapsedJuz: ReadonlySet<number>) {
+function buildJuzRows(surahs: SurahSummary[], collapsedJuz: ReadonlySet<number>) {
   const rows: ListRow[] = [];
   const stickyHeaderIndices: number[] = [];
   let currentJuz: number | null = null;
@@ -59,6 +64,59 @@ function buildRows(surahs: SurahSummary[], collapsedJuz: ReadonlySet<number>) {
   }
 
   return { rows, stickyHeaderIndices };
+}
+
+/** The flat "View: Sura" mode -- plain surah-number order, no Juz
+ * groupings or sticky headers at all. Matches Muslim Pro's default Quran
+ * tab list (confirmed from its real screenshots), with the Juz-grouped
+ * view (this app's own pre-existing, intentional feature) one tap away via
+ * the view-mode dropdown rather than replaced. */
+function buildSuraRows(surahs: SurahSummary[]) {
+  return { rows: surahs.map((surah): ListRow => ({ kind: 'surah', surah })), stickyHeaderIndices: [] as number[] };
+}
+
+/** Muslim Pro's "View: Sura ▾" dropdown atop its Sura List / Juz List
+ * section, toggling between the flat and Juz-grouped layouts. A minimal
+ * two-option menu rather than a native picker -- React Native has no
+ * built-in `<select>`, and this app already reveals an inline options row
+ * on tap for the same kind of small, fixed choice set (see the reading
+ * theme toggle in quran/[surah].tsx). */
+function ViewModeDropdown({ mode, onChange }: { mode: ViewMode; onChange: (mode: ViewMode) => void }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View style={styles.viewDropdownWrapper}>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        hitSlop={8}
+        style={[styles.viewDropdownButton, { borderColor: theme.border }]}>
+        <ThemedText type="small" themeColor="text">
+          View: {mode === 'sura' ? 'Sura' : 'Juz'}
+        </ThemedText>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={14} color={theme.text} />
+      </Pressable>
+
+      {open && (
+        <ThemedView type="backgroundElement" style={[styles.viewDropdownMenu, { borderColor: theme.border }]}>
+          {(['sura', 'juz'] as const).map((option) => (
+            <Pressable
+              key={option}
+              onPress={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+              style={styles.viewDropdownOption}>
+              <ThemedText type="small" themeColor={option === mode ? 'primary' : 'text'}>
+                {option === 'sura' ? 'Sura' : 'Juz'}
+              </ThemedText>
+              {option === mode && <Ionicons name="checkmark" size={14} color={theme.primary} />}
+            </Pressable>
+          ))}
+        </ThemedView>
+      )}
+    </View>
+  );
 }
 
 function JuzHeader({ juz, collapsed, onToggle }: { juz: number; collapsed: boolean; onToggle: () => void }) {
@@ -83,11 +141,27 @@ function JuzHeader({ juz, collapsed, onToggle }: { juz: number; collapsed: boole
 
 export default function SurahListScreen() {
   const { data: surahs, isLoading, error } = useSurahs();
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const { data: recentSurahs } = useRecentSurahs();
   const [collapsedJuz, setCollapsedJuz] = useState<ReadonlySet<number>>(new Set());
+  // Muslim Pro's own default is the flat Sura view (confirmed from its real
+  // screenshots), with Juz grouping -- this app's own pre-existing feature
+  // -- one tap away via the dropdown rather than lost.
+  const [viewMode, setViewMode] = useState<ViewMode>('sura');
 
   const { rows, stickyHeaderIndices } = useMemo(
-    () => (surahs ? buildRows(surahs, collapsedJuz) : { rows: [], stickyHeaderIndices: [] }),
-    [surahs, collapsedJuz]
+    () =>
+      surahs
+        ? viewMode === 'juz'
+          ? buildJuzRows(surahs, collapsedJuz)
+          : buildSuraRows(surahs)
+        : { rows: [], stickyHeaderIndices: [] },
+    [surahs, collapsedJuz, viewMode]
+  );
+
+  const surahsByNumber = useMemo(
+    () => new Map((surahs ?? []).map((surah) => [surah.surah_number, surah])),
+    [surahs]
   );
 
   function toggleJuz(juz: number) {
@@ -101,6 +175,21 @@ export default function SurahListScreen() {
       return next;
     });
   }
+
+  const listHeader = (
+    <>
+      {accessToken && recentSurahs && recentSurahs.items.length > 0 && (
+        <RecentsStrip items={recentSurahs.items} surahsByNumber={surahsByNumber} />
+      )}
+
+      <View style={styles.listSectionHeader}>
+        <ThemedText type="smallBold" themeColor="textSecondary">
+          {viewMode === 'juz' ? 'Juz List' : 'Sura List'}
+        </ThemedText>
+        <ViewModeDropdown mode={viewMode} onChange={setViewMode} />
+      </View>
+    </>
+  );
 
   return (
     <ThemedView style={styles.container}>
@@ -132,6 +221,7 @@ export default function SurahListScreen() {
             keyExtractor={(row) => (row.kind === 'header' ? `juz-${row.juz}` : String(row.surah.surah_number))}
             getItemType={(row) => row.kind}
             stickyHeaderIndices={stickyHeaderIndices}
+            ListHeaderComponent={listHeader}
             renderItem={({ item }) =>
               item.kind === 'header' ? (
                 <JuzHeader juz={item.juz} collapsed={item.collapsed} onToggle={() => toggleJuz(item.juz)} />
@@ -194,5 +284,42 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.card,
+  },
+  listSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.three,
+    paddingBottom: Spacing.two,
+  },
+  viewDropdownWrapper: {
+    position: 'relative',
+  },
+  viewDropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two,
+  },
+  viewDropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    marginTop: Spacing.one,
+    borderWidth: 1,
+    borderRadius: Radius.card,
+    overflow: 'hidden',
+    minWidth: 110,
+    zIndex: 10,
+  },
+  viewDropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
   },
 });

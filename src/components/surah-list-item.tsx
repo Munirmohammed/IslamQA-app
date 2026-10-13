@@ -38,7 +38,18 @@ export function SurahListItem({ surah }: SurahListItemProps) {
                 </ThemedText>
               </View>
 
-              <ArabicText size="ayahCompact">{surah.surah_name_ar}</ArabicText>
+              {/* Muslim Pro renders each sura's name as a small stylized
+                  Arabic-calligraphy image/badge. This app has no such
+                  artwork, and fabricating fake "calligraphy" art would be
+                  dishonest sourcing -- so this gives the existing plain
+                  Arabic name a bounded, tinted container instead, which
+                  reads as a badge without claiming to be real calligraphy
+                  art. */}
+              <View style={[styles.calligraphyBadge, { backgroundColor: theme.primaryMuted }]}>
+                <ArabicText size="badge" themeColor="primary" bold numberOfLines={1}>
+                  {surah.surah_name_ar}
+                </ArabicText>
+              </View>
             </View>
           )}
         </Pressable>
@@ -110,5 +121,13 @@ const styles = StyleSheet.create({
   textColumn: {
     flex: 1,
     gap: 2,
+  },
+  calligraphyBadge: {
+    minWidth: 56,
+    height: 44,
+    borderRadius: Radius.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.two,
   },
 });

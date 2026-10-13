@@ -108,6 +108,12 @@ export const ArabicFonts = {
 export const ArabicTypeScale = {
   ayah: { fontSize: 26, lineHeight: 52 },
   ayahCompact: { fontSize: 22, lineHeight: 44 },
+  // Sized to sit inside the small bounded "calligraphy badge" box
+  // (SurahListItem, RecentsStrip) that stands in for Muslim Pro's actual
+  // stylized-calligraphy sura-name artwork -- this app has no such image
+  // assets, so a tinted container + this smaller size gives a badge-like
+  // silhouette without fabricating artwork that doesn't exist.
+  badge: { fontSize: 17, lineHeight: 26 },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
