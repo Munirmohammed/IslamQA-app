@@ -32,6 +32,23 @@ export function getPrayerTimesForDate(latitude: number, longitude: number, date:
   }));
 }
 
+/** "sunrise" isn't a prayer -- skip it when picking what's "next". Wraps
+ * to fajr once isha has passed for the day. Shared by the Prayers screen
+ * and Home's condensed version of the same "Now" card so the two never
+ * drift out of sync. */
+export function findNextPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTimeEntry | null {
+  const actionable = prayers.filter((p) => p.key !== 'sunrise');
+  const next = actionable.find((p) => p.time.getTime() > now.getTime());
+  return next ?? actionable[0] ?? null;
+}
+
+export function formatCountdown(ms: number): string {
+  const totalMinutes = Math.max(0, Math.round(ms / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
 /** Bearing from the given coordinates to the Kaaba, in degrees from true
  * north (0-360). */
 export function getQiblaBearing(latitude: number, longitude: number): number {

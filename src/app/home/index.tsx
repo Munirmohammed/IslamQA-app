@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,6 +8,7 @@ import { ActivityHeatmap } from '@/components/activity-heatmap';
 import { EmptyState } from '@/components/empty-state';
 import { FeatureCard } from '@/components/feature-card';
 import { KhatmahProgressCard } from '@/components/khatmah-progress-card';
+import { ProgressRing } from '@/components/progress-ring';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -16,6 +18,8 @@ import { useHistory, useStreak } from '@/features/gamification/api';
 import { useKhatmahProgress } from '@/features/khatmah/api';
 import { useTodaySalah } from '@/features/salah/api';
 import { useTheme } from '@/hooks/use-theme';
+import { findNextPrayer, formatCountdown, getPrayerTimesForDate } from '@/lib/prayer-times';
+import { useLocationStore } from '@/stores/location-store';
 
 import type { KhatmahProgress } from '@/features/khatmah/types';
 import type { SalahLog } from '@/features/salah/types';
@@ -59,28 +63,70 @@ const PRAYER_KEYS: (keyof Pick<SalahLog, 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 
   'isha',
 ];
 
-function TodaySalahCard() {
-  const theme = useTheme();
-  const { data: today } = useTodaySalah();
-  if (!today) return null;
+/** Muslim Pro's actual Prayers-tab layout -- a "Now" card (next prayer +
+ * live countdown) beside a circular "N/5 prayed" ring -- confirmed directly
+ * off its real screenshots (see `/more/prayer-times`, which already
+ * implements the full-size version of this same pair of cards). This is
+ * the condensed version of that same real, sourced layout for the Home
+ * dashboard, reusing the exact same shared helpers (`findNextPrayer`,
+ * `formatCountdown`, `ProgressRing`) rather than a second, drifting copy.
+ * Replaces the old plain row-of-dots card, which didn't resemble anything
+ * in Muslim Pro's real UI. */
+function TodayPrayersCard({ today }: { today: SalahLog }) {
+  const latitude = useLocationStore((s) => s.latitude);
+  const longitude = useLocationStore((s) => s.longitude);
+  const [now, setNow] = useState(() => new Date());
+
+  // Re-render once a minute so "next prayer" and the countdown stay live
+  // without the user having to reopen the app.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const prayers = latitude !== null && longitude !== null ? getPrayerTimesForDate(latitude, longitude, now) : null;
+  const nextPrayer = prayers ? findNextPrayer(prayers, now) : null;
+  const prayedCount = PRAYER_KEYS.filter((key) => today[key]).length;
 
   return (
     <Link href="/more/prayer-times" asChild>
       <Pressable>
         {({ pressed }) => (
-          <ThemedView type="backgroundElement" style={[styles.salahCard, pressed && styles.pressed]}>
+          <View style={[styles.prayersSection, pressed && styles.pressed]}>
             <ThemedText type="smallBold">Today&apos;s prayers</ThemedText>
-            <View style={styles.salahDots}>
-              {PRAYER_KEYS.map((key) => (
-                <Ionicons
-                  key={key}
-                  name={today[key] ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={22}
-                  color={today[key] ? theme.primary : theme.textSecondary}
-                />
-              ))}
+            <View style={styles.prayersRow}>
+              <ThemedView type="backgroundElement" style={styles.nowCard}>
+                {nextPrayer ? (
+                  <>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      Now
+                    </ThemedText>
+                    <ThemedText type="smallBold">{nextPrayer.name}</ThemedText>
+                    <ThemedText type="title" style={styles.nowTime}>
+                      {nextPrayer.time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      in {formatCountdown(nextPrayer.time.getTime() - now.getTime())}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Enable location to see prayer times
+                  </ThemedText>
+                )}
+              </ThemedView>
+              <ThemedView type="backgroundElement" style={styles.ringCard}>
+                <ProgressRing progress={prayedCount / PRAYER_KEYS.length} size={64}>
+                  <ThemedText type="smallBold">
+                    {prayedCount}/{PRAYER_KEYS.length}
+                  </ThemedText>
+                </ProgressRing>
+                <ThemedText type="small" themeColor="textSecondary">
+                  prayed
+                </ThemedText>
+              </ThemedView>
             </View>
-          </ThemedView>
+          </View>
         )}
       </Pressable>
     </Link>
@@ -131,6 +177,7 @@ export default function HomeScreen() {
   const { data: streak, isLoading: streakLoading, error: streakError } = useStreak();
   const { data: history, isLoading: historyLoading } = useHistory(30);
   const { data: khatmah, isLoading: khatmahLoading } = useKhatmahProgress();
+  const { data: today } = useTodaySalah();
 
   return (
     <ThemedView style={styles.container}>
@@ -188,7 +235,7 @@ export default function HomeScreen() {
             </>
           )}
 
-          {me && <TodaySalahCard />}
+          {me && today && <TodayPrayersCard today={today} />}
 
           <View style={styles.sectionHeading}>
             <ThemedText type="smallBold">Explore</ThemedText>
@@ -322,17 +369,34 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  salahCard: {
-    borderRadius: Radius.card,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   pressed: {
     opacity: 0.8,
   },
-  salahDots: {
+  prayersSection: {
+    gap: Spacing.two,
+  },
+  prayersRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  nowCard: {
+    flex: 1,
+    borderRadius: Radius.card,
+    padding: Spacing.three,
+    gap: 2,
+    justifyContent: 'center',
+  },
+  nowTime: {
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  ringCard: {
+    width: 110,
+    borderRadius: Radius.card,
+    padding: Spacing.three,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
   },
   grid: {
     flexDirection: 'row',

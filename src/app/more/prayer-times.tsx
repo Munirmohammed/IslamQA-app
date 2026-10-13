@@ -13,7 +13,12 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useSalahHistory, useTodaySalah, useUpdateSalah } from '@/features/salah/api';
 import { useTheme } from '@/hooks/use-theme';
-import { getPrayerTimesForDate, type PrayerTimeEntry } from '@/lib/prayer-times';
+import {
+  findNextPrayer,
+  formatCountdown,
+  getPrayerTimesForDate,
+  type PrayerTimeEntry,
+} from '@/lib/prayer-times';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLocationStore } from '@/stores/location-store';
 
@@ -22,23 +27,8 @@ import type { PrayerName, SalahLog } from '@/features/salah/types';
 const TRACKED_PRAYERS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-/** "sunrise" isn't a prayer -- skip it when picking what's "next". Wraps
- * to fajr once isha has passed for the day. */
-function findNextPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTimeEntry | null {
-  const actionable = prayers.filter((p) => p.key !== 'sunrise');
-  const next = actionable.find((p) => p.time.getTime() > now.getTime());
-  return next ?? actionable[0] ?? null;
-}
-
 function isTrackedPrayer(key: PrayerTimeEntry['key']): key is PrayerName {
   return (TRACKED_PRAYERS as string[]).includes(key);
-}
-
-function formatCountdown(ms: number): string {
-  const totalMinutes = Math.max(0, Math.round(ms / 60_000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 /** Muslim Pro's actual "Prayers" screen merges what this app used to split
