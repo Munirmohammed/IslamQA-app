@@ -1,13 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { FlatList, Pressable, StyleSheet } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
 import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useHalaqaStudents } from '@/features/halaqa/api';
+import { useTheme } from '@/hooks/use-theme';
 
 import type { StudentSummary } from '@/features/halaqa/types';
 
@@ -62,6 +65,7 @@ export default function HalaqaRosterScreen() {
 }
 
 function StudentRow({ halaqaId, student }: { halaqaId: string; student: StudentSummary }) {
+  const theme = useTheme();
   const correctPct =
     student.correct_rate !== null ? `${Math.round(student.correct_rate * 100)}% correct` : 'No sessions yet';
 
@@ -75,10 +79,14 @@ function StudentRow({ halaqaId, student }: { halaqaId: string; student: StudentS
       <Pressable>
         {({ pressed }) => (
           <ThemedView type="backgroundElement" style={[styles.row, pressed && styles.rowPressed]}>
-            <ThemedText type="smallBold">{student.username}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {student.session_count} session{student.session_count === 1 ? '' : 's'} · {correctPct}
-            </ThemedText>
+            <Avatar label={student.username} size={36} />
+            <View style={styles.rowTextColumn}>
+              <ThemedText type="smallBold">{student.username}</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {student.session_count} session{student.session_count === 1 ? '' : 's'} · {correctPct}
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
           </ThemedView>
         )}
       </Pressable>
@@ -105,8 +113,14 @@ const styles = StyleSheet.create({
     height: Spacing.two,
   },
   row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: Radius.card,
     padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  rowTextColumn: {
+    flex: 1,
     gap: Spacing.half,
   },
   rowPressed: {

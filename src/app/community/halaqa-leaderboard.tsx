@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
 import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
@@ -56,6 +57,7 @@ function LeaderboardRow({ entry }: { entry: HalaqaLeaderboardEntry }) {
       <ThemedText type="smallBold" style={styles.rank}>
         #{entry.rank}
       </ThemedText>
+      <Avatar label={entry.username} size={36} />
       <View style={styles.rowBody}>
         <ThemedText type="smallBold">{entry.username}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">

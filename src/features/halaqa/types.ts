@@ -5,6 +5,10 @@ export interface Halaqa {
   name: string;
   join_code: string;
   created_at: string;
+  member_count: number;
+  recent_session_count: number;
+  /** Populated for "studying" circles only -- who teaches it. */
+  teacher_name: string | null;
 }
 
 export interface MyHalaqasResponse {

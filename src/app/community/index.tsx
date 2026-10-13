@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
 import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
@@ -15,6 +17,7 @@ import type { Halaqa } from '@/features/halaqa/types';
 
 export default function HalaqaScreen() {
   const { data, isLoading, error } = useMyHalaqas();
+  const hasNoHalaqas = !!data && data.teaching.length === 0 && data.studying.length === 0;
 
   return (
     <ThemedView style={styles.container}>
@@ -22,23 +25,29 @@ export default function HalaqaScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           <ThemedText type="title">Community</ThemedText>
 
-          <Link href="/community/leaderboard" asChild>
-            <Pressable>
-              {({ pressed }) => (
-                <ThemedText type="link" themeColor="primary" style={pressed && styles.rowPressed}>
-                  Global leaderboard →
-                </ThemedText>
-              )}
-            </Pressable>
-          </Link>
+          <GlobalLeaderboardRow />
 
-          {isLoading && <Skeleton height={80} borderRadius={Spacing.three} />}
+          {isLoading && (
+            <View style={styles.section}>
+              <Skeleton height={84} borderRadius={Radius.card} />
+              <Skeleton height={84} borderRadius={Radius.card} />
+            </View>
+          )}
 
           {error && <EmptyState icon="alert-circle-outline" message="Couldn't load your halaqas." />}
 
+          {hasNoHalaqas && (
+            <EmptyState
+              icon="people-circle-outline"
+              message="No halaqas yet -- start one to teach, or join with a code from your teacher."
+            />
+          )}
+
           {data && data.teaching.length > 0 && (
             <View style={styles.section}>
-              <ThemedText type="smallBold">Teaching</ThemedText>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                TEACHING · {data.teaching.length}
+              </ThemedText>
               {data.teaching.map((halaqa) => (
                 <TeachingRow key={halaqa.id} halaqa={halaqa} />
               ))}
@@ -47,33 +56,103 @@ export default function HalaqaScreen() {
 
           {data && data.studying.length > 0 && (
             <View style={styles.section}>
-              <ThemedText type="smallBold">Studying</ThemedText>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                STUDYING · {data.studying.length}
+              </ThemedText>
               {data.studying.map((halaqa) => (
                 <StudyingRow key={halaqa.id} halaqa={halaqa} />
               ))}
             </View>
           )}
 
-          <CreateHalaqaForm />
-          <JoinHalaqaForm />
+          <View style={styles.section}>
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {hasNoHalaqas ? 'GET STARTED' : 'ADD ANOTHER CIRCLE'}
+            </ThemedText>
+            <CreateHalaqaForm />
+            <JoinHalaqaForm />
+          </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
+function GlobalLeaderboardRow() {
+  const theme = useTheme();
+  return (
+    <Link href="/community/leaderboard" asChild>
+      <Pressable>
+        {({ pressed }) => (
+          <ThemedView type="backgroundElement" style={[styles.navRow, pressed && styles.rowPressed]}>
+            <View style={[styles.navIconBadge, { backgroundColor: theme.primaryMuted }]}>
+              <Ionicons name="trophy-outline" size={18} color={theme.primary} />
+            </View>
+            <ThemedText type="smallBold" style={styles.navRowLabel}>
+              Global leaderboard
+            </ThemedText>
+            <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+          </ThemedView>
+        )}
+      </Pressable>
+    </Link>
+  );
+}
+
+/** "N students" / "N check-ins this week" -- a compact, muted icon+count
+ * pair (not a full sentence per stat), the density lever Muslim Pro's feed
+ * uses for its like/comment/share row: several short icon+number pairs
+ * packed on one line rather than stacked prose. */
+function StatPair({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.statPair}>
+      <Ionicons name={icon} size={14} color={theme.textSecondary} />
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
+
 function TeachingRow({ halaqa }: { halaqa: Halaqa }) {
+  const theme = useTheme();
   return (
     <Link
       href={{ pathname: '/community/halaqa-roster', params: { halaqaId: halaqa.id, halaqaName: halaqa.name } }}
       asChild>
       <Pressable>
         {({ pressed }) => (
-          <ThemedView type="backgroundElement" style={[styles.row, pressed && styles.rowPressed]}>
-            <ThemedText>{halaqa.name}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Join code: {halaqa.join_code}
-            </ThemedText>
+          <ThemedView type="backgroundElement" style={[styles.card, pressed && styles.rowPressed]}>
+            <View style={styles.cardTopRow}>
+              <Avatar label={halaqa.name} />
+              <View style={styles.cardTextColumn}>
+                <ThemedText type="smallBold" numberOfLines={1}>
+                  {halaqa.name}
+                </ThemedText>
+                <View style={styles.statRow}>
+                  <StatPair
+                    icon="people-outline"
+                    label={`${halaqa.member_count} student${halaqa.member_count === 1 ? '' : 's'}`}
+                  />
+                  <StatPair
+                    icon="flash-outline"
+                    label={
+                      halaqa.recent_session_count > 0
+                        ? `${halaqa.recent_session_count} check-in${halaqa.recent_session_count === 1 ? '' : 's'} this week`
+                        : 'Quiet this week'
+                    }
+                  />
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+            </View>
+            <View style={[styles.joinCodeChip, { backgroundColor: theme.primaryMuted }]}>
+              <Ionicons name="key-outline" size={13} color={theme.primary} />
+              <ThemedText type="small" themeColor="primary">
+                {halaqa.join_code}
+              </ThemedText>
+            </View>
           </ThemedView>
         )}
       </Pressable>
@@ -82,6 +161,7 @@ function TeachingRow({ halaqa }: { halaqa: Halaqa }) {
 }
 
 function StudyingRow({ halaqa }: { halaqa: Halaqa }) {
+  const theme = useTheme();
   return (
     <Link
       href={{
@@ -91,11 +171,33 @@ function StudyingRow({ halaqa }: { halaqa: Halaqa }) {
       asChild>
       <Pressable>
         {({ pressed }) => (
-          <ThemedView type="backgroundElement" style={[styles.row, pressed && styles.rowPressed]}>
-            <ThemedText>{halaqa.name}</ThemedText>
-            <ThemedText type="small" themeColor="primary">
-              View leaderboard →
-            </ThemedText>
+          <ThemedView type="backgroundElement" style={[styles.card, pressed && styles.rowPressed]}>
+            <View style={styles.cardTopRow}>
+              <Avatar label={halaqa.name} />
+              <View style={styles.cardTextColumn}>
+                <ThemedText type="smallBold" numberOfLines={1}>
+                  {halaqa.name}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                  Taught by {halaqa.teacher_name ?? 'your teacher'}
+                </ThemedText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.primary} />
+            </View>
+            <View style={styles.statRow}>
+              <StatPair
+                icon="people-outline"
+                label={`${halaqa.member_count} student${halaqa.member_count === 1 ? '' : 's'}`}
+              />
+              <StatPair
+                icon="flash-outline"
+                label={
+                  halaqa.recent_session_count > 0
+                    ? `${halaqa.recent_session_count} check-in${halaqa.recent_session_count === 1 ? '' : 's'} this week`
+                    : 'Quiet this week'
+                }
+              />
+            </View>
           </ThemedView>
         )}
       </Pressable>
@@ -110,7 +212,10 @@ function CreateHalaqaForm() {
 
   return (
     <ThemedView type="backgroundElement" style={styles.formCard}>
-      <ThemedText type="smallBold">Start a halaqa</ThemedText>
+      <View style={styles.formHeader}>
+        <Ionicons name="add-circle-outline" size={18} color={theme.primary} />
+        <ThemedText type="smallBold">Start a halaqa</ThemedText>
+      </View>
       <TextInput
         placeholder="Circle name"
         placeholderTextColor={theme.textSecondary}
@@ -152,7 +257,10 @@ function JoinHalaqaForm() {
 
   return (
     <ThemedView type="backgroundElement" style={styles.formCard}>
-      <ThemedText type="smallBold">Join a halaqa</ThemedText>
+      <View style={styles.formHeader}>
+        <Ionicons name="enter-outline" size={18} color={theme.primary} />
+        <ThemedText type="smallBold">Join a halaqa</ThemedText>
+      </View>
       <TextInput
         placeholder="Join code"
         placeholderTextColor={theme.textSecondary}
@@ -204,10 +312,58 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.two,
   },
-  row: {
+  sectionLabel: {
+    letterSpacing: 0.5,
+  },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: Radius.card,
     padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  navIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navRowLabel: {
+    flex: 1,
+  },
+  card: {
+    borderRadius: Radius.card,
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  cardTextColumn: {
+    flex: 1,
     gap: Spacing.half,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  statPair: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  joinCodeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
   },
   rowPressed: {
     opacity: 0.7,
@@ -216,6 +372,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   input: {
     borderWidth: 1,
