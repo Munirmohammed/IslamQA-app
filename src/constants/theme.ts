@@ -156,12 +156,16 @@ export const ArabicFonts = {
   // badge box at all, just bare text. What reads as "ornate" at a glance
   // is the sura name's typeface itself -- bold, high-contrast swashes
   // and joined ligatures consistent with a Ruqʿah-style calligraphic cut.
-  // Aref Ruqaa Ink is a real, open-licensed (OFL) Google Font in exactly
-  // that style, not fabricated artwork -- same "real typeface rendering
-  // real text" category as NotoNaskhArabic above, just a more decorative
-  // cut for this specifically decorative context.
-  badge: 'ArefRuqaaInk_400Regular',
-  badgeBold: 'ArefRuqaaInk_700Bold',
+  // Aref Ruqaa is a real, open-licensed (OFL) Google Font in exactly that
+  // style, not fabricated artwork -- same "real typeface rendering real
+  // text" category as NotoNaskhArabic above, just a more decorative cut
+  // for this specifically decorative context. NOT the "Ink" variant: that
+  // one is a COLR/CPAL color font with a baked-in reddish ink-brush
+  // palette that ignores the `color` style entirely (confirmed by
+  // screenshot -- it rendered maroon in both themes, never the intended
+  // theme.text white), so it can never actually match either theme.
+  badge: 'ArefRuqaa_400Regular',
+  badgeBold: 'ArefRuqaa_700Bold',
 } as const;
 
 export const ArabicTypeScale = {
