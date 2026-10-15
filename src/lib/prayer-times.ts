@@ -19,7 +19,12 @@ const PRAYER_LABELS: Record<PrayerKey, string> = {
 
 /** Muslim World League is a widely-used global default calculation
  * method; not user-configurable yet (a reasonable fast-follow once
- * there's a settings surface to put a method picker on). */
+ * there's a settings surface to put a method picker on). Exported so the
+ * Prayers screen's method chip (matching the real Muslim Pro app's own
+ * "Muslim World League (MWL)" chip) shows the actual method in use
+ * instead of a hardcoded string that could drift from this file. */
+export const CALCULATION_METHOD_LABEL = 'Muslim World League (MWL)';
+
 export function getPrayerTimesForDate(latitude: number, longitude: number, date: Date): PrayerTimeEntry[] {
   const coordinates = new Coordinates(latitude, longitude);
   const params = CalculationMethod.MuslimWorldLeague();
@@ -42,18 +47,22 @@ export function findNextPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTim
   return next ?? actionable[0] ?? null;
 }
 
-/** The prayer whose window the current time falls in -- the most recent
- * actionable prayer whose time has already passed today. Muslim Pro's
- * real Home/"Today" card (confirmed off a real device screenshot) labels
- * this one "Now" (e.g. "Now · Asr") and shows *its* start time as the
- * big number, with the countdown underneath counting down to the next
- * one instead -- a different prayer than `findNextPrayer` returns. Wraps
- * to the last prayer of the list (isha) before fajr has happened yet
- * today, mirroring `findNextPrayer`'s own wrap-around at the other end. */
+/** The prayer period currently in effect -- Muslim Pro's real Prayers
+ * screen (confirmed off a real device screenshot) outlines this row
+ * (e.g. "Asr" between Asr and Maghrib) separately from the "next"
+ * countdown badge on the *upcoming* prayer, and its Home/"Today" card
+ * labels the same period "Now" (e.g. "Now · Asr"), showing its start
+ * time as the big number with the countdown underneath counting down to
+ * `findNextPrayer`'s result instead. Shared by both screens so they
+ * never drift out of sync. Mirrors `findNextPrayer`'s wrap-around: before
+ * Fajr, the period in effect is still the previous day's Isha, so this
+ * returns the last entry rather than null. Unlike `findNextPrayer`,
+ * Sunrise is included -- the period between Sunrise and Dhuhr is a real
+ * (if non-prayer) period Muslim Pro still highlights. */
 export function findCurrentPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTimeEntry | null {
-  const actionable = prayers.filter((p) => p.key !== 'sunrise');
-  const passed = [...actionable].reverse().find((p) => p.time.getTime() <= now.getTime());
-  return passed ?? actionable[actionable.length - 1] ?? null;
+  const past = prayers.filter((p) => p.time.getTime() <= now.getTime());
+  if (past.length > 0) return past[past.length - 1];
+  return prayers.length > 0 ? prayers[prayers.length - 1] : null;
 }
 
 export function formatCountdown(ms: number): string {

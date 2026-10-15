@@ -49,6 +49,12 @@ export const Colors = {
     mistakeModerate: '#D9762B',
     mistakeLow: '#C9A23B',
     recitationHighlight: '#DC7702',
+    // A stronger, more visible outline than `border` -- used for the
+    // Prayers screen's current-prayer row (an outlined box, not a filled
+    // background; see `outlineStrong` dark-mode comment, pixel-sampled
+    // from the real device screenshot). Derived the same "mix off an
+    // existing color" way as everything else here rather than a fixed hex.
+    outlineStrong: mixHex(MUSLIM_PRO_LIGHT_TEXT, MUSLIM_PRO_LIGHT_BG, 0.65),
     // Derived from the real background rather than a fixed value, so it
     // stays visibly distinct whatever the background actually is instead
     // of silently matching it (the previous fixed `#FBEBD7` nearly
@@ -98,6 +104,14 @@ export const Colors = {
     gradientBannerEnd: '#2E1F64',
     // Same adapted-alert derivation as light, mixed into the dark card instead.
     dangerMuted: mixHex(MUSLIM_PRO_DARK_CARD, '#E0574A', 0.22),
+    // Pixel-sampled (Pillow) from the real device Prayers screenshot: the
+    // outline box around the current prayer's row (e.g. "Asr" when it's the
+    // active prayer period) reads ~#ACC0C1 at both its top and bottom edge
+    // (y=667 and y=737 on the 588x1280 reference image) -- a light,
+    // slightly cool-tinted gray, not pure white and not the brand green.
+    // mixHex(card, text, 0.7) lands at #B0BFBC, a close match, so it's
+    // derived rather than hardcoded like the rest of this palette.
+    outlineStrong: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.7),
   },
 } as const;
 

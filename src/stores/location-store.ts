@@ -12,7 +12,19 @@ interface LocationState {
   source: 'gps' | 'manual' | null;
   /** Only set when source is 'manual' -- a GPS fix has no human-readable name. */
   label: string | null;
-  setLocation: (latitude: number, longitude: number, source: 'gps' | 'manual', label?: string) => void;
+  /** Only set when source is 'manual' -- the picked city's flag emoji, for
+   * the Prayers screen's flag+city location chip (the real Muslim Pro app
+   * shows one). A GPS fix has no known country without reverse-geocoding
+   * (not done here), so it stays null and the chip falls back to a plain
+   * location-pin icon instead of guessing a flag. */
+  flag: string | null;
+  setLocation: (
+    latitude: number,
+    longitude: number,
+    source: 'gps' | 'manual',
+    label?: string,
+    flag?: string
+  ) => void;
 }
 
 export const useLocationStore = create<LocationState>((set) => ({
@@ -20,6 +32,7 @@ export const useLocationStore = create<LocationState>((set) => ({
   longitude: null,
   source: null,
   label: null,
-  setLocation: (latitude, longitude, source, label) =>
-    set({ latitude, longitude, source, label: label ?? null }),
+  flag: null,
+  setLocation: (latitude, longitude, source, label, flag) =>
+    set({ latitude, longitude, source, label: label ?? null, flag: flag ?? null }),
 }));
