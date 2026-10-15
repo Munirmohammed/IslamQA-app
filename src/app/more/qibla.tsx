@@ -322,7 +322,11 @@ export default function QiblaScreen() {
                             y={y + 7}
                             fontSize={20}
                             fontWeight="bold"
-                            fill={RING_WHITE}
+                            // The real screenshot tints just "N" in the
+                            // needle's red -- true-north reference, not a
+                            // cardinal like the other three -- and leaves
+                            // E/S/W white.
+                            fill={label === 'N' ? NEEDLE_RED : RING_WHITE}
                             textAnchor="middle">
                             {label}
                           </SvgText>
@@ -371,16 +375,21 @@ export default function QiblaScreen() {
                     </ThemedText>
                   )}
 
-                  <Pressable onPress={() => router.push('/more/azkar')} style={styles.promoPress}>
+                  {/* The real screenshot's equivalent card here is literally
+                      "Try the Tasbih feature / Find solace in dhikr" --
+                      pointed at Azkar before Tasbih existed as a real screen
+                      in this app; now that it does, this matches both the
+                      wording and the destination. */}
+                  <Pressable onPress={() => router.push('/more/tasbih')} style={styles.promoPress}>
                     {({ pressed }) => (
                       <ThemedView type="backgroundElement" style={[styles.promoCard, pressed && styles.pressed]}>
                         <View style={[styles.promoIconWrap, { backgroundColor: theme.primaryMuted }]}>
-                          <Ionicons name="flower-outline" size={20} color={theme.primary} />
+                          <Ionicons name="ellipse-outline" size={20} color={theme.primary} />
                         </View>
                         <View style={styles.promoText}>
-                          <ThemedText type="smallBold">Explore Dhikr & Azkar</ThemedText>
+                          <ThemedText type="smallBold">Try the Tasbih feature</ThemedText>
                           <ThemedText type="small" themeColor="textSecondary">
-                            Find solace in remembrance
+                            Find solace in dhikr
                           </ThemedText>
                         </View>
                         <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
