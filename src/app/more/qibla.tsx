@@ -333,7 +333,7 @@ export default function QiblaScreen() {
                     <Animated.View
                       style={[
                         styles.needlePivot,
-                        { left: pc - NEEDLE_WIDTH / 2, top: pc - NEEDLE_LENGTH / 2 },
+                        { left: pc - NEEDLE_WIDTH / 2, top: KAABA_BADGE_SIZE + pc - NEEDLE_LENGTH / 2 },
                         animatedNeedleStyle,
                       ]}>
                       <Svg width={NEEDLE_WIDTH} height={NEEDLE_LENGTH}>
