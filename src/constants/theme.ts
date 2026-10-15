@@ -7,25 +7,30 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-/** Muslim Pro's actual palette, measured directly from its real Play
- * Store screenshots (pixel-sampled via Pillow, not eyeballed) --
- * `#003030`/`#002424` dominate its dark "Today"/Prayers/Quran-list
- * screens (a deep forest teal, not navy or near-black), and `#48A884` is
- * its real accent green. Muslim Pro's own cream (`#FCF0D8`, its "Paper"
- * Quran-reading theme specifically) was tried here first as this app's
- * *general* light background -- a mistake, since every other screen
- * measured (Prayers, Quran list, Today) is the dark teal, not cream, and
- * it read as "yellow" rather than "the green Muslim Pro app." The light
- * background below is a light tint of the real green instead; the
- * existing Quran-reading-only theme picker (`ReadingThemes` below, a
- * separate, still-valid feature sourced from Quran.com) is untouched and
- * still offers an actual cream-toned "Paper" option for anyone who wants
- * one, just not as this app's default. */
-const MUSLIM_PRO_DARK_BG = '#002424';
-const MUSLIM_PRO_DARK_CARD = '#003030';
+/** Muslim Pro's actual palette. The values below are a second, corrected
+ * measurement, superseding the first pass: that one was pixel-sampled
+ * from Play Store marketing screenshots, which turned out to run
+ * lighter and less saturated than the real app. These are measured
+ * (Pillow, dominant-color histograms, not eyeballed) from real
+ * screenshots taken directly off a phone running the live app --
+ * `#003228` dominates every dark screen measured (Today, Prayers, Quran
+ * list) at 35-45% of pixels, darker than the first pass's `#003030`, and
+ * `#00D278` is its real accent green -- a vivid, saturated green, not
+ * the muted sage `#48A884` the first pass used. Muslim Pro's own cream
+ * (`#FCF0D8`, its "Paper" Quran-reading theme specifically) was tried
+ * here first as this app's *general* light background -- a mistake,
+ * since every other screen measured (Prayers, Quran list, Today) is the
+ * dark teal, not cream, and it read as "yellow" rather than "the green
+ * Muslim Pro app." The light background below is a light tint of the
+ * real green instead; the existing Quran-reading-only theme picker
+ * (`ReadingThemes` below, a separate, still-valid feature sourced from
+ * Quran.com) is untouched and still offers an actual cream-toned "Paper"
+ * option for anyone who wants one, just not as this app's default. */
+const MUSLIM_PRO_DARK_BG = '#002828';
+const MUSLIM_PRO_DARK_CARD = '#003228';
 const MUSLIM_PRO_DARK_TEXT = '#FCFCFC';
-const MUSLIM_PRO_GREEN = '#48A884';
-const MUSLIM_PRO_LIGHT_BG = mixHex('#FFFFFF', MUSLIM_PRO_GREEN, 0.08);
+const MUSLIM_PRO_GREEN = '#00D278';
+const MUSLIM_PRO_LIGHT_BG = mixHex('#FFFFFF', MUSLIM_PRO_GREEN, 0.06);
 const MUSLIM_PRO_LIGHT_TEXT = '#1A1A1A';
 
 export const Colors = {
