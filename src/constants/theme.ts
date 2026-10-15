@@ -134,17 +134,36 @@ export const ArabicFonts = {
   // polish item, not a Phase F0 blocker.
   quran: 'NotoNaskhArabic_400Regular',
   quranBold: 'NotoNaskhArabic_700Bold',
+  // Sura-name "badge" rendering only (SurahListItem, RecentsStrip) --
+  // NOT used for actual ayah/Mushaf text above. A real device screenshot
+  // of Muslim Pro's Quran tab (not a marketing shot) was inspected at 5x
+  // zoom for this: there is no geometric seal/stamp/rosette artwork
+  // anywhere around the sura names, and the Sura List rows have no
+  // badge box at all, just bare text. What reads as "ornate" at a glance
+  // is the sura name's typeface itself -- bold, high-contrast swashes
+  // and joined ligatures consistent with a Ruqʿah-style calligraphic cut.
+  // Aref Ruqaa Ink is a real, open-licensed (OFL) Google Font in exactly
+  // that style, not fabricated artwork -- same "real typeface rendering
+  // real text" category as NotoNaskhArabic above, just a more decorative
+  // cut for this specifically decorative context.
+  badge: 'ArefRuqaaInk_400Regular',
+  badgeBold: 'ArefRuqaaInk_700Bold',
 } as const;
 
 export const ArabicTypeScale = {
   ayah: { fontSize: 26, lineHeight: 52 },
   ayahCompact: { fontSize: 22, lineHeight: 44 },
-  // Sized to sit inside the small bounded "calligraphy badge" box
-  // (SurahListItem, RecentsStrip) that stands in for Muslim Pro's actual
-  // stylized-calligraphy sura-name artwork -- this app has no such image
-  // assets, so a tinted container + this smaller size gives a badge-like
-  // silhouette without fabricating artwork that doesn't exist.
-  badge: { fontSize: 17, lineHeight: 26 },
+  // Sized for the sura-name badge rendering (SurahListItem, RecentsStrip)
+  // -- see ArabicFonts.badge below for what font this actually renders
+  // in and why. Up from an earlier, smaller pass: once the real
+  // calligraphic font replaced the plain Naskh one here, the old 17px
+  // read too cramped for its taller, more ornamental letterforms.
+  badge: { fontSize: 22, lineHeight: 34 },
+  // The Recents card's sura name sits in a bigger box than list rows
+  // (confirmed from the real screenshot: its badge is roughly square and
+  // noticeably larger than a list row's inline name) -- same font,
+  // larger size.
+  badgeLarge: { fontSize: 30, lineHeight: 44 },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

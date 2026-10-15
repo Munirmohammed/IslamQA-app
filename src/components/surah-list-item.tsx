@@ -28,27 +28,30 @@ export function SurahListItem({ surah }: SurahListItemProps) {
                 styles.navAreaInner,
                 pressed && { backgroundColor: theme.backgroundSelected },
               ]}>
-              <View style={styles.textColumn}>
-                <ThemedText type="smallBold">
-                  {surah.surah_number}. {surah.surah_name_en}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {surah.surah_name_translation_en} · {surah.ayah_count} ayahs ·{' '}
-                  {surah.revelation_type}
-                </ThemedText>
-              </View>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.number}>
+                {surah.surah_number}
+              </ThemedText>
 
-              {/* Muslim Pro renders each sura's name as a small stylized
-                  Arabic-calligraphy image/badge. This app has no such
-                  artwork, and fabricating fake "calligraphy" art would be
-                  dishonest sourcing -- so this gives the existing plain
-                  Arabic name a bounded, tinted container instead, which
-                  reads as a badge without claiming to be real calligraphy
-                  art. */}
-              <View style={[styles.calligraphyBadge, { backgroundColor: theme.primaryMuted }]}>
-                <ArabicText size="badge" themeColor="primary" bold numberOfLines={1}>
-                  {surah.surah_name_ar}
-                </ArabicText>
+              {/* A real device screenshot of Muslim Pro's Quran tab (5x
+                  zoomed, not eyeballed at thumbnail size) shows no
+                  badge/box around each row's Arabic sura name at all --
+                  just the name itself, inline, in a calligraphic
+                  typeface (see ArabicText's `font="badge"` / the
+                  ArabicFonts.badge comment in constants/theme.ts for the
+                  real, open-licensed font this uses and why there's no
+                  geometric "seal" artwork here, real or fabricated). No
+                  tinted container here on purpose, to match. */}
+              <ArabicText size="badge" font="badge" themeColor="text" numberOfLines={1} style={styles.arabicName}>
+                {surah.surah_name_ar}
+              </ArabicText>
+
+              <View style={styles.textColumn}>
+                <ThemedText type="smallBold" numberOfLines={1}>
+                  {surah.surah_name_en}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                  {surah.surah_name_translation_en}
+                </ThemedText>
               </View>
             </View>
           )}
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
+    gap: Spacing.two,
     paddingVertical: Spacing.three,
     paddingLeft: Spacing.three,
   },
@@ -118,16 +121,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Plain number, not circled -- matches the real screenshot (no chip/
+  // circle around the row index). Fixed width so every row's Arabic name
+  // and English text line up in a column regardless of 1 vs 2 digits.
+  number: {
+    width: 22,
+    textAlign: 'center',
+  },
+  // No background/border -- the real screenshot has no badge box around
+  // a list row's Arabic name, just the calligraphic text itself sitting
+  // on the row (unlike the Recents card, which does get a tinted box).
+  arabicName: {
+    minWidth: 56,
+  },
   textColumn: {
     flex: 1,
     gap: 2,
-  },
-  calligraphyBadge: {
-    minWidth: 56,
-    height: 44,
-    borderRadius: Radius.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.two,
   },
 });
