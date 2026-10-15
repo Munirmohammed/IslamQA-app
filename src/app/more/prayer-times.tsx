@@ -200,13 +200,16 @@ export default function PrayerTimesScreen() {
             </View>
           </View>
 
-          {prayers && nextPrayer && (
-            // One continuous card, not two separate ones with a gap --
-            // Muslim Pro's own Prayers screen (confirmed via its Play
-            // Store screenshots) joins the "Now" summary and the prayed
-            // ring into a single card split by one internal divider, and
-            // a live render of the old two-card version showed just how
-            // fragmented/flat that reads stacked above the row list below.
+          {/* Logged-out, a real device screenshot of Muslim Pro's Prayers
+              screen shows no separate "Now" summary card at all -- just the
+              chips, then straight into the row list, whose current row
+              already carries its own inline "Now" badge below. This card
+              only earns its keep by also hosting the prayed-count ring, so
+              it's gated on `accessToken` rather than shown unconditionally
+              (the earlier Play-Store-screenshot-based reasoning that
+              justified it as a logged-out-safe merge is superseded by this
+              on-device evidence). */}
+          {accessToken && today && prayers && nextPrayer && (
             <ThemedView type="backgroundElement" style={styles.summaryCard}>
               <View style={styles.nowHalf}>
                 <ThemedText type="small" themeColor="textSecondary">
@@ -221,21 +224,17 @@ export default function PrayerTimesScreen() {
                 </ThemedText>
               </View>
 
-              {accessToken && today && (
-                <>
-                  <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
-                  <View style={styles.ringHalf}>
-                    <ProgressRing progress={prayedCount / TRACKED_PRAYERS.length} size={72}>
-                      <ThemedText type="smallBold">
-                        {prayedCount}/{TRACKED_PRAYERS.length}
-                      </ThemedText>
-                    </ProgressRing>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      prayed
-                    </ThemedText>
-                  </View>
-                </>
-              )}
+              <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
+              <View style={styles.ringHalf}>
+                <ProgressRing progress={prayedCount / TRACKED_PRAYERS.length} size={72}>
+                  <ThemedText type="smallBold">
+                    {prayedCount}/{TRACKED_PRAYERS.length}
+                  </ThemedText>
+                </ProgressRing>
+                <ThemedText type="small" themeColor="textSecondary">
+                  prayed
+                </ThemedText>
+              </View>
             </ThemedView>
           )}
 
