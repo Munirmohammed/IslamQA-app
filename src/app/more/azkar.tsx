@@ -61,11 +61,11 @@ function matchesQuery(category: AzkarCategory, query: string): boolean {
 
 /** Muslim Pro's real "Hisnul Muslim" quick-access icon has no app screen
  * of its own to jump to here -- it's just the section already on this
- * page -- so it scrolls to that section instead of a dead link.
- * Bookmarks and Tasbih are real Muslim Pro features this app doesn't
- * have built yet (no saved-dua storage, no counter screen); rather than
- * wire them to a route that doesn't exist or silently do nothing, they
- * say so. */
+ * page -- so it scrolls to that section instead of a dead link. Tasbih
+ * is now a real, built screen (`/more/tasbih`) and links there directly.
+ * Bookmarks is still a real Muslim Pro feature this app doesn't have
+ * built yet (no saved-dua storage); rather than wire it to a route that
+ * doesn't exist or silently do nothing, it says so. */
 function announceUnbuilt(feature: string) {
   Alert.alert(feature, `${feature} isn't built yet -- coming in a future update.`);
 }
@@ -186,7 +186,7 @@ export default function AzkarScreen() {
                   </ThemedText>
                 </Pressable>
                 <Pressable
-                  onPress={() => announceUnbuilt('Tasbih')}
+                  onPress={() => router.push('/more/tasbih')}
                   style={[styles.quickAccessItem, styles.quickAccessDivider, { borderLeftColor: theme.border }]}>
                   <Ionicons name="disc-outline" size={22} color={theme.primary} />
                   <ThemedText type="small" style={styles.quickAccessLabel} numberOfLines={1}>
