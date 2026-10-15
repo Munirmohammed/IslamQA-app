@@ -68,6 +68,27 @@ export const Colors = {
     tileClay: mixHex(MUSLIM_PRO_LIGHT_BG, '#D9762B', 0.16),
     tileAmber: mixHex(MUSLIM_PRO_LIGHT_BG, '#C9A23B', 0.2),
     tileRose: mixHex(MUSLIM_PRO_LIGHT_BG, '#C0392B', 0.12),
+    // Muslim Pro's signature diagonal green->purple gradient, used on its
+    // real Home/"Today" tab for both its "Unlock ad-free" and "Get
+    // Premium" banners -- pixel-sampled off the real device screenshot
+    // (Pillow, averaging clean fill pixels at each end of the pill,
+    // excluding background and the white banner text/icon) rather than
+    // eyeballed: the left end reads ~rgb(14-23,150-157,98-101), the right
+    // end ~rgb(46-48,26-44,100-104). Used here for this app's own feature/
+    // community CTA banners (see Home), not a literal premium upsell --
+    // this app has no premium tier. Kept identical across light/dark: a
+    // brand gradient reads as a deliberate splash of color regardless of
+    // the surrounding theme, the same way the real app's gradient doesn't
+    // change with system appearance either.
+    gradientBannerStart: '#0E9A62',
+    gradientBannerEnd: '#2E1F64',
+    // A tinted-card background for a dismissible alert banner -- adapted
+    // from Muslim Pro's real solid dark-red "Your premium has expired"
+    // bar (this app has no premium/subscription concept to clone that
+    // literally for), reusing this app's own existing `error` red mixed
+    // into the card surface instead of a fixed new hex, the same
+    // derivation `tileRose` above already uses.
+    dangerMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#C0392B', 0.16),
   },
   dark: {
     text: MUSLIM_PRO_DARK_TEXT,
@@ -95,6 +116,11 @@ export const Colors = {
     tileClay: mixHex(MUSLIM_PRO_DARK_CARD, '#E68A42', 0.2),
     tileAmber: mixHex(MUSLIM_PRO_DARK_CARD, '#D6B34C', 0.2),
     tileRose: mixHex(MUSLIM_PRO_DARK_CARD, '#E0574A', 0.18),
+    // Same sampled gradient as light -- see its comment above.
+    gradientBannerStart: '#0E9A62',
+    gradientBannerEnd: '#2E1F64',
+    // Same adapted-alert derivation as light, mixed into the dark card instead.
+    dangerMuted: mixHex(MUSLIM_PRO_DARK_CARD, '#E0574A', 0.22),
   },
 } as const;
 

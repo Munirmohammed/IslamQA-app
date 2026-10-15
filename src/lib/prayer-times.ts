@@ -42,6 +42,20 @@ export function findNextPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTim
   return next ?? actionable[0] ?? null;
 }
 
+/** The prayer whose window the current time falls in -- the most recent
+ * actionable prayer whose time has already passed today. Muslim Pro's
+ * real Home/"Today" card (confirmed off a real device screenshot) labels
+ * this one "Now" (e.g. "Now · Asr") and shows *its* start time as the
+ * big number, with the countdown underneath counting down to the next
+ * one instead -- a different prayer than `findNextPrayer` returns. Wraps
+ * to the last prayer of the list (isha) before fajr has happened yet
+ * today, mirroring `findNextPrayer`'s own wrap-around at the other end. */
+export function findCurrentPrayer(prayers: PrayerTimeEntry[], now: Date): PrayerTimeEntry | null {
+  const actionable = prayers.filter((p) => p.key !== 'sunrise');
+  const passed = [...actionable].reverse().find((p) => p.time.getTime() <= now.getTime());
+  return passed ?? actionable[actionable.length - 1] ?? null;
+}
+
 export function formatCountdown(ms: number): string {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
   const hours = Math.floor(totalMinutes / 60);
