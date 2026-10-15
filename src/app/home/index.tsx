@@ -42,6 +42,7 @@ const FEATURE_ITEMS: FeatureRowItem[] = [
   { icon: 'compass-outline', label: 'Qibla', href: '/more/qibla' },
   { icon: 'time-outline', label: 'Prayers', href: '/more/prayer-times' },
   { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },
+  { icon: 'ellipse-outline', label: 'Tasbih', href: '/more/tasbih' },
   { icon: 'book-outline', label: 'Hadith', href: '/more/hadith' },
   { icon: 'cash-outline', label: 'Zakat', href: '/more/zakat' },
   { icon: 'calendar-outline', label: 'Calendar', href: '/more/calendar' },

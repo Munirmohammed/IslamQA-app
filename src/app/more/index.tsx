@@ -15,6 +15,7 @@ const TOOLS: SettingsRowItem[] = [
   { icon: 'compass-outline', label: 'Qibla Direction', href: '/more/qibla' },
   { icon: 'calendar-outline', label: 'Islamic Calendar', href: '/more/calendar' },
   { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },
+  { icon: 'ellipse-outline', label: 'Tasbih', href: '/more/tasbih' },
   { icon: 'book-outline', label: 'Hadith', href: '/more/hadith' },
   { icon: 'cash-outline', label: 'Zakat Calculator', href: '/more/zakat' },
 ];
