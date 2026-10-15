@@ -53,9 +53,9 @@ const FEATURE_ITEMS: FeatureRowItem[] = [
  * icon-in-circle + label columns, not a 2-column grid of full-width
  * rows -- this replaces the previous `FeatureGrid`'s row layout with
  * that same horizontal-strip shape, reusing `FeatureCard`'s icon/label
- * data (same six real routes) rather than inventing Muslim Pro's own
- * unrelated shortcuts (Giving, Tasbih, Inspiration) this app has no
- * screen for. */
+ * data (this app's own real routes -- Tasbih included, now that it's a
+ * real built screen -- rather than Muslim Pro's unrelated shortcuts
+ * like Giving or Inspiration this app has no equivalent for). */
 function FeatureRow() {
   const theme = useTheme();
   return (
