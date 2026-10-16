@@ -1,7 +1,0 @@
-{
-  "name": "Qalam — The Ultimate Quran & Islamic Companion",
-  "description": "Comprehensive Islamic companion app featuring Mushaf Quran reading with audio recitations, Tafsir, Tajweed, Hifz spaced repetition & garden, Prayer times, Qibla compass, Azkar, Tasbih, Hadith, and Khatmah tracking.",
-  "capabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
