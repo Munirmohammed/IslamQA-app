@@ -48,11 +48,13 @@ export default function LeaderboardScreen() {
   );
 }
 
+const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
 function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
   return (
     <ThemedView type="backgroundElement" style={styles.row}>
       <ThemedText type="smallBold" style={styles.rank}>
-        #{entry.rank}
+        {MEDALS[entry.rank] ?? `#${entry.rank}`}
       </ThemedText>
       <Avatar label={entry.username} size={36} />
       <View style={styles.rowBody}>

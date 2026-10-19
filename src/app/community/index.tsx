@@ -4,15 +4,18 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppHeader } from '@/components/app-header';
 import { Avatar } from '@/components/avatar';
 import { EmptyState } from '@/components/empty-state';
 import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
+import { useLeaderboard } from '@/features/gamification/api';
 import { useCreateHalaqa, useJoinHalaqa, useMyHalaqas } from '@/features/halaqa/api';
 import { useTheme } from '@/hooks/use-theme';
 
+import type { LeaderboardEntry } from '@/features/gamification/types';
 import type { Halaqa } from '@/features/halaqa/types';
 
 export default function HalaqaScreen() {
@@ -22,10 +25,11 @@ export default function HalaqaScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <AppHeader />
         <ScrollView contentContainerStyle={styles.content}>
           <ThemedText type="title">Community</ThemedText>
 
-          <GlobalLeaderboardRow />
+          <GlobalLeaderboardPreview />
 
           {isLoading && (
             <View style={styles.section}>
@@ -78,20 +82,55 @@ export default function HalaqaScreen() {
   );
 }
 
-function GlobalLeaderboardRow() {
+const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+/** Ported from the AI Studio reference's inline "Hasanat Leaderboard"
+ * card (medal emoji for the top 3, hasanat + streak per row) -- using
+ * this app's own real useLeaderboard() data, not fabricated member rows.
+ * Still links through to the full /community/leaderboard list rather than
+ * duplicating it entirely here. */
+function GlobalLeaderboardPreview() {
   const theme = useTheme();
+  const { data } = useLeaderboard('total_hasanat');
+  const top3 = data?.entries.slice(0, 3) ?? [];
+
   return (
     <Link href="/community/leaderboard" asChild>
       <Pressable>
         {({ pressed }) => (
-          <ThemedView type="backgroundElement" style={[styles.navRow, pressed && styles.rowPressed]}>
-            <View style={[styles.navIconBadge, { backgroundColor: theme.primaryMuted }]}>
-              <Ionicons name="trophy-outline" size={18} color={theme.primary} />
+          <ThemedView type="backgroundElement" style={[styles.leaderboardCard, pressed && styles.rowPressed]}>
+            <View style={styles.leaderboardHeader}>
+              <View style={[styles.navIconBadge, { backgroundColor: theme.primaryMuted }]}>
+                <Ionicons name="trophy-outline" size={18} color={theme.primary} />
+              </View>
+              <ThemedText type="smallBold" style={styles.navRowLabel}>
+                Hasanat Leaderboard
+              </ThemedText>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
             </View>
-            <ThemedText type="smallBold" style={styles.navRowLabel}>
-              Global leaderboard
-            </ThemedText>
-            <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+
+            {top3.length === 0 ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                No one&apos;s on the board yet -- be the first to read or recite an ayah.
+              </ThemedText>
+            ) : (
+              <View style={styles.leaderboardRows}>
+                {top3.map((entry: LeaderboardEntry) => (
+                  <View key={entry.rank} style={styles.leaderboardRow}>
+                    <ThemedText type="smallBold" style={styles.leaderboardMedal}>
+                      {MEDALS[entry.rank]}
+                    </ThemedText>
+                    <Avatar label={entry.username} size={28} />
+                    <ThemedText type="small" style={styles.leaderboardName} numberOfLines={1}>
+                      {entry.username}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="primary">
+                      {entry.total_hasanat.toLocaleString()}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            )}
           </ThemedView>
         )}
       </Pressable>
@@ -330,6 +369,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navRowLabel: {
+    flex: 1,
+  },
+  leaderboardCard: {
+    borderRadius: Radius.card,
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  leaderboardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  leaderboardRows: {
+    gap: Spacing.two,
+  },
+  leaderboardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  leaderboardMedal: {
+    width: 20,
+    textAlign: 'center',
+  },
+  leaderboardName: {
     flex: 1,
   },
   card: {

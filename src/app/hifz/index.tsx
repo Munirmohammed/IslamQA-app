@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppHeader } from '@/components/app-header';
 import { ArabicText } from '@/components/arabic-text';
 import { EmptyState } from '@/components/empty-state';
 import { FeatureCard } from '@/components/feature-card';
@@ -40,6 +41,12 @@ export default function HifzReviewScreen() {
 
   const currentCard: DueCard | undefined = dueCards?.[0];
 
+  // Real counts, not the AI Studio reference's fabricated "Mastered: N •
+  // In Review: N" demo numbers -- summed from this user's actual
+  // per-surah progress (ayahs_learned vs. the rest of what's tracked).
+  const masteredCount = progress?.surahs.reduce((sum, s) => sum + s.ayahs_learned, 0) ?? 0;
+  const inReviewCount = progress?.surahs.reduce((sum, s) => sum + (s.ayahs_tracked - s.ayahs_learned), 0) ?? 0;
+
   const gardenDescription =
     progress && progress.surahs.length > 0
       ? `${progress.surahs.length} surah${progress.surahs.length === 1 ? '' : 's'} growing`
@@ -53,12 +60,33 @@ export default function HifzReviewScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <AppHeader />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <ThemedText type="title">Hifz</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
             Your memorization plan: add any ayah from the Quran tab, review it here on a
             spaced-repetition schedule, and track it in the Garden and Coach below.
           </ThemedText>
+
+          {accessToken && progress && progress.surahs.length > 0 && (
+            <View style={styles.statsRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="smallBold" themeColor="success">
+                  {masteredCount}
+                </ThemedText>{' '}
+                mastered
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                •
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="smallBold" themeColor="mistakeModerate">
+                  {inReviewCount}
+                </ThemedText>{' '}
+                in review
+              </ThemedText>
+            </View>
+          )}
 
           <View style={styles.section}>
             <ThemedText type="smallBold">Your Hifz toolkit</ThemedText>
@@ -221,6 +249,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: -Spacing.two,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    alignItems: 'center',
   },
   section: {
     gap: Spacing.three,
