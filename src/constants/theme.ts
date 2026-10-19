@@ -113,6 +113,35 @@ export const Colors = {
     // derived rather than hardcoded like the rest of this palette.
     outlineStrong: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.7),
   },
+  // A true-black alternative to the dark teal above, for OLED screens --
+  // a real, user-toggleable feature (not system-driven, see
+  // theme-mode-store.ts), not a design clone of any competitor. Brand
+  // colors (primary/accent/error/success/...) stay identical to `dark`
+  // so a surah/ayah/badge doesn't shift hue when a user flips this --
+  // only the neutral background/card/border scale drops toward true
+  // black (Tailwind's neutral-950/900/800, the closest common "AMOLED
+  // app" convention) instead of the teal-tinted dark scale.
+  amoled: {
+    text: MUSLIM_PRO_DARK_TEXT,
+    background: '#000000',
+    backgroundElement: '#0a0a0a',
+    backgroundSelected: '#171717',
+    textSecondary: '#a3a3a3',
+    primary: MUSLIM_PRO_GREEN,
+    primaryMuted: mixHex('#0a0a0a', MUSLIM_PRO_GREEN, 0.2),
+    accent: '#D8B463',
+    border: '#262626',
+    error: '#E0574A',
+    success: '#3DAF72',
+    mistakeModerate: '#E68A42',
+    mistakeLow: '#D6B34C',
+    recitationHighlight: '#EF911D',
+    recitationHighlightMuted: '#2E2112',
+    gradientBannerStart: '#0E9A62',
+    gradientBannerEnd: '#2E1F64',
+    dangerMuted: mixHex('#0a0a0a', '#E0574A', 0.22),
+    outlineStrong: mixHex('#0a0a0a', MUSLIM_PRO_DARK_TEXT, 0.7),
+  },
 } as const;
 
 /** Tarteel's own Advanced Analytics documents a 4-tier mistake-frequency

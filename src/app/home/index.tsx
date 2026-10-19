@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Link, router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityHeatmap } from '@/components/activity-heatmap';
-import { Avatar } from '@/components/avatar';
+import { AppHeader } from '@/components/app-header';
+import { ArabicText } from '@/components/arabic-text';
+import { DailyGoalWidget } from '@/components/daily-goal-widget';
 import { EmptyState } from '@/components/empty-state';
 import { GradientBanner } from '@/components/gradient-banner';
 import { KhatmahProgressCard } from '@/components/khatmah-progress-card';
@@ -13,7 +16,6 @@ import { Skeleton } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useMe } from '@/features/auth/api';
 import { useHistory, useStreak } from '@/features/gamification/api';
 import { useKhatmahProgress } from '@/features/khatmah/api';
 import { useTodaySalah, useUpdateSalah } from '@/features/salah/api';
@@ -32,113 +34,183 @@ import { useLocationStore } from '@/stores/location-store';
 import type { KhatmahProgress } from '@/features/khatmah/types';
 import type { PrayerName, SalahLog } from '@/features/salah/types';
 
-interface FeatureRowItem {
+interface UtilityItem {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  labelAr: string;
   href: string;
+  tint: 'primary' | 'accent' | 'error';
 }
 
-const FEATURE_ITEMS: FeatureRowItem[] = [
-  { icon: 'compass-outline', label: 'Qibla', href: '/more/qibla' },
-  { icon: 'time-outline', label: 'Prayers', href: '/more/prayer-times' },
-  { icon: 'flower-outline', label: 'Dua & Azkar', href: '/more/azkar' },
-  { icon: 'ellipse-outline', label: 'Tasbih', href: '/more/tasbih' },
-  { icon: 'book-outline', label: 'Hadith', href: '/more/hadith' },
-  { icon: 'cash-outline', label: 'Zakat', href: '/more/zakat' },
-  { icon: 'calendar-outline', label: 'Calendar', href: '/more/calendar' },
+// Ported from the AI Studio reference's 6-tile utility grid, with this
+// app's own real routes (Tasbih included, a real built screen) plus
+// Calendar (a 7th tile the reference has no equivalent for, kept since
+// nothing that already works should be dropped from Home just to match
+// a 6-tile layout exactly).
+const UTILITY_ITEMS: UtilityItem[] = [
+  { icon: 'time-outline', label: 'Prayer Times', labelAr: 'مواقيت الصلاة', href: '/more/prayer-times', tint: 'primary' },
+  { icon: 'compass-outline', label: 'Qibla Compass', labelAr: 'اتجاه القبلة', href: '/more/qibla', tint: 'primary' },
+  { icon: 'flower-outline', label: 'Dua & Azkar', labelAr: 'أذكار المسلم', href: '/more/azkar', tint: 'accent' },
+  { icon: 'ellipse-outline', label: 'Digital Tasbih', labelAr: 'المسبحة', href: '/more/tasbih', tint: 'accent' },
+  { icon: 'book-outline', label: 'Hadith Library', labelAr: 'السنة النبوية', href: '/more/hadith', tint: 'primary' },
+  { icon: 'cash-outline', label: 'Zakat Calc', labelAr: 'حاسبة الزكاة', href: '/more/zakat', tint: 'accent' },
+  { icon: 'calendar-outline', label: 'Calendar', labelAr: 'التقويم', href: '/more/calendar', tint: 'primary' },
 ];
 
-/** Muslim Pro's real Home/"Today" tab (confirmed off a real device
- * screenshot) runs its "Features" shortcuts as a horizontal row of
- * icon-in-circle + label columns, not a 2-column grid of full-width
- * rows -- this replaces the previous `FeatureGrid`'s row layout with
- * that same horizontal-strip shape, reusing `FeatureCard`'s icon/label
- * data (this app's own real routes -- Tasbih included, now that it's a
- * real built screen -- rather than Muslim Pro's unrelated shortcuts
- * like Giving or Inspiration this app has no equivalent for). */
-function FeatureRow() {
+function UtilityGrid() {
   const theme = useTheme();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featureRow}>
-      {FEATURE_ITEMS.map((item) => (
+    <View style={styles.utilityGrid}>
+      {UTILITY_ITEMS.map((item) => (
         <Link key={item.href} href={item.href as never} asChild>
-          <Pressable style={styles.featureItem}>
+          <Pressable style={styles.utilityTile}>
             {({ pressed }) => (
-              <>
-                <View
-                  style={[
-                    styles.featureIconCircle,
-                    { backgroundColor: theme.primaryMuted },
-                    pressed && styles.pressed,
-                  ]}>
-                  <Ionicons name={item.icon} size={24} color={theme.primary} />
+              <ThemedView type="backgroundElement" style={[styles.utilityCard, pressed && styles.pressed]}>
+                <View style={[styles.utilityIconBadge, { backgroundColor: theme.primaryMuted }]}>
+                  <Ionicons name={item.icon} size={20} color={theme[item.tint]} />
                 </View>
-                <ThemedText type="small" style={styles.featureLabel} numberOfLines={1}>
+                <ThemedText type="small" style={styles.utilityLabel} numberOfLines={1}>
                   {item.label}
                 </ThemedText>
-              </>
+                <ArabicText font="badge" themeColor="textSecondary" size="badge" style={styles.utilityLabelAr} numberOfLines={1}>
+                  {item.labelAr}
+                </ArabicText>
+              </ThemedView>
             )}
           </Pressable>
         </Link>
       ))}
-    </ScrollView>
+    </View>
+  );
+}
+
+const DAILY_DHIKR = {
+  arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',
+  transliteration: 'SubhanAllahi wa bihamdihi',
+  translation: 'Glory be to Allah and His is the praise',
+};
+
+/** A real, functional tap counter -- not wired to the backend's
+ * hasanat/streak system, since there's no real endpoint for "dhikr counted
+ * toward hasanat" (unlike reading progress, which useLogProgress genuinely
+ * tracks); faking that link would mean inventing a mechanic the backend
+ * doesn't actually have. Session-only count, same as the AI Studio
+ * reference's own un-persisted `useState` counter. */
+function QuickDhikrCard() {
+  const theme = useTheme();
+  const [count, setCount] = useState(0);
+
+  return (
+    <ThemedView type="backgroundElement" style={styles.dhikrCard}>
+      <View style={styles.dhikrHeaderRow}>
+        <ThemedText type="small" themeColor="accent" style={styles.dhikrEyebrow}>
+          Quick Dhikr
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          Goal: 33
+        </ThemedText>
+      </View>
+      <ArabicText style={styles.dhikrArabic}>{DAILY_DHIKR.arabic}</ArabicText>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.dhikrCenter}>
+        {DAILY_DHIKR.transliteration}
+      </ThemedText>
+      <ThemedText type="small" themeColor="textSecondary" style={[styles.dhikrCenter, styles.dhikrItalic]}>
+        &quot;{DAILY_DHIKR.translation}&quot;
+      </ThemedText>
+
+      <View style={styles.dhikrButtonRow}>
+        <Pressable onPress={() => setCount((c) => c + 1)} style={styles.dhikrTapButton}>
+          <ThemedView type="primary" style={styles.dhikrTapInner}>
+            <ThemedText type="smallBold" themeColor="background">
+              Tap to Count ({count})
+            </ThemedText>
+          </ThemedView>
+        </Pressable>
+        <Pressable onPress={() => router.push('/more/tasbih')} hitSlop={8}>
+          <View style={[styles.dhikrFullButton, { borderColor: theme.border }]}>
+            <ThemedText type="small">Full Tasbih</ThemedText>
+          </View>
+        </Pressable>
+      </View>
+    </ThemedView>
+  );
+}
+
+const AYAH_OF_THE_DAY = {
+  arabic: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ۝ ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ',
+  translation: '"[All] praise is [due] to Allah, Lord of the worlds - The Entirely Merciful, the Especially Merciful."',
+  reference: 'Al-Fatihah 1:1-2',
+};
+
+function AyahOfTheDayCard() {
+  const theme = useTheme();
+  return (
+    <ThemedView type="backgroundElement" style={styles.ayahCard}>
+      <View style={styles.dhikrHeaderRow}>
+        <ThemedText type="small" themeColor="primary" style={styles.dhikrEyebrow}>
+          Ayah of the Day
+        </ThemedText>
+      </View>
+      <ArabicText style={styles.ayahArabic}>{AYAH_OF_THE_DAY.arabic}</ArabicText>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.dhikrItalic}>
+        {AYAH_OF_THE_DAY.translation}
+      </ThemedText>
+      <View style={[styles.ayahFooterRow, { borderTopColor: theme.border }]}>
+        <ThemedText type="small" themeColor="textSecondary">
+          {AYAH_OF_THE_DAY.reference}
+        </ThemedText>
+        <Pressable onPress={() => router.push('/quran/1')} hitSlop={8}>
+          <ThemedText type="small" themeColor="primary" style={styles.dhikrItalic}>
+            Read Surah →
+          </ThemedText>
+        </Pressable>
+      </View>
+    </ThemedView>
+  );
+}
+
+/** Hero greeting banner -- ported from the AI Studio reference's opening
+ * card. The reference's gradient/verse/CTA are directly reusable as-is
+ * (real tokens, a real correctly-cited ayah); only the navigation target
+ * differs, since this app has no single "surah 1" concept separate from
+ * its own `/quran/1` route. */
+function HeroBanner() {
+  const theme = useTheme();
+  const now = useMemo(() => new Date(), []);
+  return (
+    <LinearGradient
+      colors={[theme.gradientBannerStart, theme.backgroundElement, theme.gradientBannerEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.heroCard}>
+      <View style={styles.heroTopRow}>
+        <View style={styles.heroPill}>
+          <ThemedText type="small" style={styles.heroPillText}>
+            Assalamu Alaikum
+          </ThemedText>
+        </View>
+        <ThemedText type="small" style={styles.heroDate}>
+          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+        </ThemedText>
+      </View>
+      <ThemedText type="smallBold" style={styles.heroHeadline}>
+        Begin your day with the remembrance of Allah
+      </ThemedText>
+      <ThemedText type="small" style={styles.heroQuote}>
+        &quot;Those who have believed and whose hearts are assured by the remembrance of Allah.
+        Unquestionably, by the remembrance of Allah hearts are assured.&quot; (13:28)
+      </ThemedText>
+      <Pressable onPress={() => router.push('/quran/1')} style={styles.heroButton} hitSlop={4}>
+        <Ionicons name="book-outline" size={15} color="#002828" />
+        <ThemedText type="smallBold" style={styles.heroButtonText}>
+          Open Mushaf
+        </ThemedText>
+      </Pressable>
+    </LinearGradient>
   );
 }
 
 const PRAYER_KEYS: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-
-/** The compact header row Muslim Pro's real Home tab opens with: a
- * Hijri-date readout on the left and, on the right, either a "Log In"
- * pill (logged out) or the signed-in user. The real screenshot's other
- * header element -- a notification bell with an unread badge -- has no
- * equivalent in this app (no notifications system exists), so rather
- * than fabricate fake notifications, a real piece of data takes that
- * same badge-on-the-right slot instead: the user's actual day streak,
- * once it's loaded. */
-function HomeHeader({ streakCount }: { streakCount: number | null }) {
-  const theme = useTheme();
-  const { data: me } = useMe();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const hijriToday = useMemo(() => toHijri(new Date()), []);
-
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        {me ? <Avatar label={me.username} size={34} /> : <Ionicons name="person-circle-outline" size={34} color={theme.textSecondary} />}
-        <ThemedText type="smallBold">
-          {hijriToday.day} {hijriToday.monthName}
-        </ThemedText>
-      </View>
-
-      {accessToken ? (
-        streakCount !== null && (
-          <Link href="/community/leaderboard" asChild>
-            <Pressable>
-              {({ pressed }) => (
-                <View style={[styles.streakChip, { backgroundColor: theme.backgroundElement }, pressed && styles.pressed]}>
-                  <Ionicons name="flame" size={16} color={theme.accent} />
-                  <ThemedText type="smallBold">{streakCount}</ThemedText>
-                </View>
-              )}
-            </Pressable>
-          </Link>
-        )
-      ) : (
-        <Link href="/more" asChild>
-          <Pressable>
-            {({ pressed }) => (
-              <View style={[styles.loginPill, { backgroundColor: theme.primary }, pressed && styles.pressed]}>
-                <ThemedText type="smallBold" style={styles.loginPillText}>
-                  Log In
-                </ThemedText>
-              </View>
-            )}
-          </Pressable>
-        </Link>
-      )}
-    </View>
-  );
-}
 
 /** Adapted from Muslim Pro's real solid dark-red "Your premium has
  * expired. Tap to reactivate now." bar with its own dismiss X -- this
@@ -315,7 +387,11 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <HomeHeader streakCount={streak ? streak.current_streak : null} />
+          <AppHeader />
+
+          <HeroBanner />
+
+          <DailyGoalWidget />
 
           <GradientBanner
             href="/community/leaderboard"
@@ -338,7 +414,7 @@ export default function HomeScreen() {
           />
 
           <View style={styles.sectionHeadingRow}>
-            <ThemedText type="smallBold">Features</ThemedText>
+            <ThemedText type="smallBold">Daily Islamic Utilities</ThemedText>
             <Link href="/more" asChild>
               <Pressable>
                 {({ pressed }) => (
@@ -349,7 +425,10 @@ export default function HomeScreen() {
               </Pressable>
             </Link>
           </View>
-          <FeatureRow />
+          <UtilityGrid />
+
+          <AyahOfTheDayCard />
+          <QuickDhikrCard />
 
           {accessToken && (
             <>
@@ -447,31 +526,139 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: BottomTabInset + Spacing.three,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  heroCard: {
+    borderRadius: Radius.card,
+    padding: Spacing.four,
+    gap: Spacing.one,
   },
-  headerLeft: {
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  heroPill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 2,
+  },
+  heroPillText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  heroDate: {
+    color: 'rgba(255,255,255,0.85)',
+  },
+  heroHeadline: {
+    color: '#FFFFFF',
+    fontSize: 19,
+    lineHeight: 24,
+    marginTop: Spacing.one,
+  },
+  heroQuote: {
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
+  heroButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  heroButtonText: {
+    color: '#002828',
+  },
+  utilityGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
-  loginPill: {
-    borderRadius: Radius.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
+  utilityTile: {
+    width: '48%',
   },
-  loginPillText: {
-    color: '#FFFFFF',
-  },
-  streakChip: {
-    flexDirection: 'row',
+  utilityCard: {
+    borderRadius: Radius.card,
+    padding: Spacing.three,
     alignItems: 'center',
     gap: 4,
-    borderRadius: Radius.pill,
-    paddingVertical: Spacing.one,
+  },
+  utilityIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  utilityLabel: {
+    fontWeight: '700',
+  },
+  utilityLabelAr: {
+    fontSize: 13,
+  },
+  ayahCard: {
+    borderRadius: Radius.card,
+    padding: Spacing.four,
+    gap: Spacing.two,
+  },
+  ayahArabic: {
+    textAlign: 'right',
+  },
+  ayahFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  dhikrCard: {
+    borderRadius: Radius.card,
+    padding: Spacing.four,
+    gap: Spacing.two,
+  },
+  dhikrHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dhikrEyebrow: {
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    fontSize: 11,
+  },
+  dhikrArabic: {
+    textAlign: 'center',
+  },
+  dhikrCenter: {
+    textAlign: 'center',
+  },
+  dhikrItalic: {
+    fontStyle: 'italic',
+  },
+  dhikrButtonRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  dhikrTapButton: {
+    flex: 1,
+  },
+  dhikrTapInner: {
+    borderRadius: Radius.card,
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+  },
+  dhikrFullButton: {
+    borderRadius: Radius.card,
+    borderWidth: 1,
+    paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
+    justifyContent: 'center',
   },
   sectionHeading: {
     marginTop: Spacing.two,
@@ -590,24 +777,5 @@ const styles = StyleSheet.create({
     marginTop: Spacing.three,
     paddingTop: Spacing.three,
     borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  featureRow: {
-    gap: Spacing.four,
-    paddingVertical: Spacing.one,
-  },
-  featureItem: {
-    alignItems: 'center',
-    gap: Spacing.two,
-    width: 72,
-  },
-  featureIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureLabel: {
-    textAlign: 'center',
   },
 });

@@ -7,6 +7,7 @@ import { createContext, useContext } from 'react';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useThemeModeStore } from '@/stores/theme-mode-store';
 
 interface ThemeOverride {
   background: string;
@@ -27,7 +28,9 @@ export const ReadingThemeOverrideProvider = ReadingThemeOverrideContext.Provider
 
 export function useTheme() {
   const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  const darkMode = useThemeModeStore((s) => s.mode);
+  const resolved = scheme === 'unspecified' ? 'light' : scheme;
+  const theme = resolved === 'dark' && darkMode === 'amoled' ? 'amoled' : resolved;
   const override = useContext(ReadingThemeOverrideContext);
 
   return override ? { ...Colors[theme], ...override } : Colors[theme];

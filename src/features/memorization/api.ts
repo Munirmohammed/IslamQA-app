@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiRequest } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth-store';
+import { useDailyGoalsStore } from '@/stores/daily-goals-store';
 
 import type {
   AddCardsInput,
@@ -56,12 +57,16 @@ export function useSimilarAyahs(surah: number | undefined, ayah: number | undefi
 
 export function useReviewCard() {
   const queryClient = useQueryClient();
+  const recordHifzReview = useDailyGoalsStore((s) => s.recordHifzReview);
   return useMutation({
     mutationFn: (input: ReviewCardInput) =>
       apiRequest<CardResponse>('/api/v1/memorization/review', { method: 'POST', body: input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['memorization', 'due'] });
       queryClient.invalidateQueries({ queryKey: ['memorization', 'progress'] });
+      // Drives Home's Daily Consistency Tracker -- a real count of actual
+      // reviews done today, not a manual self-report button.
+      recordHifzReview();
     },
   });
 }

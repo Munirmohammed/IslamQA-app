@@ -1,17 +1,19 @@
-import { ArefRuqaa_400Regular, ArefRuqaa_700Bold } from '@expo-google-fonts/aref-ruqaa';
-import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
+  import { ArefRuqaa_400Regular, ArefRuqaa_700Bold } from '@expo-google-fonts/aref-ruqaa';
+  import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
+  import { QueryClientProvider } from '@tanstack/react-query';
+  import { useFonts } from 'expo-font';
+  import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from 'expo-router';
+  import * as SplashScreen from 'expo-splash-screen';
+  import { useEffect, useState } from 'react';
+  import { useColorScheme } from 'react-native';
 
-import AppTabs from '@/components/app-tabs';
-import { LaunchAnimation } from '@/components/launch-animation';
-import { Colors } from '@/constants/theme';
-import { queryClient } from '@/lib/query-client';
-import { useAuthStore } from '@/stores/auth-store';
+  import AppTabs from '@/components/app-tabs';
+  import { LaunchAnimation } from '@/components/launch-animation';
+  import { Colors } from '@/constants/theme';
+  import { queryClient } from '@/lib/query-client';
+  import { useAuthStore } from '@/stores/auth-store';
+  import { useDailyGoalsStore } from '@/stores/daily-goals-store';
+  import { useThemeModeStore } from '@/stores/theme-mode-store';
 
 // React Navigation's own DefaultTheme/DarkTheme ship a plain white
 // (`rgb(255, 255, 255)`) `colors.card` -- the color every native
@@ -23,8 +25,8 @@ import { useAuthStore } from '@/stores/auth-store';
 // `card`/`background`/`text`/`primary`/`border` here fixes every native
 // header and the default tab bar at once, instead of repeating
 // `headerStyle`/`headerTintColor` across five separate per-tab layouts.
-function buildNavigationTheme(scheme: 'light' | 'dark'): Theme {
-  const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+function buildNavigationTheme(scheme: 'light' | 'dark' | 'amoled'): Theme {
+  const base = scheme === 'light' ? DefaultTheme : DarkTheme;
   const colors = Colors[scheme];
   return {
     ...base,
@@ -45,6 +47,10 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const hydrate = useAuthStore((s) => s.hydrate);
   const isHydrating = useAuthStore((s) => s.isHydrating);
+  const darkMode = useThemeModeStore((s) => s.mode);
+  const hydrateThemeMode = useThemeModeStore((s) => s.hydrate);
+  const isThemeModeHydrated = useThemeModeStore((s) => s.isHydrated);
+  const hydrateDailyGoals = useDailyGoalsStore((s) => s.hydrate);
   const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
 
   const [fontsLoaded] = useFonts({
@@ -56,9 +62,12 @@ export default function TabLayout() {
 
   useEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydrateThemeMode();
+    hydrateDailyGoals();
+  }, [hydrate, hydrateThemeMode, hydrateDailyGoals]);
 
-  const ready = fontsLoaded && !isHydrating;
+  const ready = fontsLoaded && !isHydrating && isThemeModeHydrated;
+  const resolvedScheme = colorScheme === 'dark' ? (darkMode === 'amoled' ? 'amoled' : 'dark') : 'light';
 
   useEffect(() => {
     // Hand off from the native splash screen to our own LaunchAnimation
@@ -75,7 +84,7 @@ export default function TabLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={buildNavigationTheme(colorScheme === 'dark' ? 'dark' : 'light')}>
+      <ThemeProvider value={buildNavigationTheme(resolvedScheme)}>
         <AppTabs />
         {showLaunchAnimation && <LaunchAnimation onFinish={() => setShowLaunchAnimation(false)} />}
       </ThemeProvider>

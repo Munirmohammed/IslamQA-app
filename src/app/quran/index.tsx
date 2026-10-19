@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Link, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppHeader } from '@/components/app-header';
 import { EmptyState } from '@/components/empty-state';
 import { RecentsStrip } from '@/components/recents-strip';
 import { Skeleton } from '@/components/skeleton';
@@ -20,6 +21,65 @@ import { useAuthStore } from '@/stores/auth-store';
 import type { SurahSummary } from '@/features/quran/types';
 
 type ViewMode = 'sura' | 'juz';
+type RevelationFilter = 'all' | 'Meccan' | 'Medinan';
+
+/** Ported from an AI Studio-generated prototype's surah directory -- a
+ * real, useful addition this list didn't have (search + Meccan/Medinan
+ * filter), using this app's own real `revelation_type` field rather than
+ * anything from that prototype's data. */
+function SurahSearchBar({
+  query,
+  onQueryChange,
+  filter,
+  onFilterChange,
+}: {
+  query: string;
+  onQueryChange: (q: string) => void;
+  filter: RevelationFilter;
+  onFilterChange: (f: RevelationFilter) => void;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.searchSection}>
+      <View style={[styles.searchInputWrap, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
+        <Ionicons name="search" size={16} color={theme.textSecondary} />
+        <TextInput
+          value={query}
+          onChangeText={onQueryChange}
+          placeholder="Search by name or number..."
+          placeholderTextColor={theme.textSecondary}
+          style={[styles.searchInput, { color: theme.text }]}
+        />
+        {query.length > 0 && (
+          <Pressable onPress={() => onQueryChange('')} hitSlop={8}>
+            <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+          </Pressable>
+        )}
+      </View>
+
+      <View style={styles.filterRow}>
+        {(['all', 'Meccan', 'Medinan'] as const).map((option) => {
+          const selected = filter === option;
+          return (
+            <Pressable key={option} onPress={() => onFilterChange(option)}>
+              <View
+                style={[
+                  styles.filterChip,
+                  selected
+                    ? { backgroundColor: theme.primary }
+                    : { backgroundColor: theme.backgroundElement, borderWidth: 1, borderColor: theme.border },
+                ]}>
+                <ThemedText type="small" themeColor={selected ? 'background' : 'text'}>
+                  {option === 'all' ? 'All' : option}
+                </ThemedText>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
 
 function QuickAction({ href, icon, label }: { href: Href; icon: keyof typeof Ionicons.glyphMap; label: string }) {
   const theme = useTheme();
@@ -148,15 +208,32 @@ export default function SurahListScreen() {
   // screenshots), with Juz grouping -- this app's own pre-existing feature
   // -- one tap away via the dropdown rather than lost.
   const [viewMode, setViewMode] = useState<ViewMode>('sura');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [revelationFilter, setRevelationFilter] = useState<RevelationFilter>('all');
+
+  const filteredSurahs = useMemo(() => {
+    if (!surahs) return undefined;
+    const query = searchQuery.trim().toLowerCase();
+    return surahs.filter((surah) => {
+      const matchesQuery =
+        query.length === 0 ||
+        surah.surah_name_en.toLowerCase().includes(query) ||
+        surah.surah_name_translation_en.toLowerCase().includes(query) ||
+        surah.surah_name_ar.includes(searchQuery.trim()) ||
+        String(surah.surah_number) === query;
+      const matchesFilter = revelationFilter === 'all' || surah.revelation_type === revelationFilter;
+      return matchesQuery && matchesFilter;
+    });
+  }, [surahs, searchQuery, revelationFilter]);
 
   const { rows, stickyHeaderIndices } = useMemo(
     () =>
-      surahs
+      filteredSurahs
         ? viewMode === 'juz'
-          ? buildJuzRows(surahs, collapsedJuz)
-          : buildSuraRows(surahs)
+          ? buildJuzRows(filteredSurahs, collapsedJuz)
+          : buildSuraRows(filteredSurahs)
         : { rows: [], stickyHeaderIndices: [] },
-    [surahs, collapsedJuz, viewMode]
+    [filteredSurahs, collapsedJuz, viewMode]
   );
 
   const surahsByNumber = useMemo(
@@ -182,18 +259,30 @@ export default function SurahListScreen() {
         <RecentsStrip items={recentSurahs.items} surahsByNumber={surahsByNumber} />
       )}
 
+      <SurahSearchBar
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        filter={revelationFilter}
+        onFilterChange={setRevelationFilter}
+      />
+
       <View style={styles.listSectionHeader}>
         <ThemedText type="smallBold" themeColor="textSecondary">
           {viewMode === 'juz' ? 'Juz List' : 'Sura List'}
         </ThemedText>
         <ViewModeDropdown mode={viewMode} onChange={setViewMode} />
       </View>
+
+      {filteredSurahs && filteredSurahs.length === 0 && (
+        <EmptyState icon="search-outline" message="No surahs match your search." />
+      )}
     </>
   );
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <SafeAreaView style={styles.safeArea}>
+        <AppHeader />
         <View style={styles.quickActions}>
           <QuickAction href="/quran/practice" icon="mic-outline" label="Tasmeea" />
           <QuickAction href="/quran/ask" icon="help-circle-outline" label="Ask the Quran" />
@@ -321,5 +410,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
+  },
+  searchSection: {
+    gap: Spacing.two,
+    paddingTop: Spacing.three,
+  },
+  searchInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    borderRadius: Radius.card,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 2,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.pill,
   },
 });

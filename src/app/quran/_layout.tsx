@@ -3,7 +3,10 @@ import { Stack } from 'expo-router';
 export default function QuranLayout() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ title: 'Quran' }} />
+      {/* headerShown: false -- the screen renders the shared AppHeader
+          itself now (app-header.tsx), replacing the native "Quran" title
+          bar so the two don't stack. */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[surah]" options={{ title: '' }} />
       <Stack.Screen name="quiz" options={{ title: 'Mutashabihat Quiz' }} />
       <Stack.Screen name="tafsir" options={{ title: 'Tafsir' }} />
