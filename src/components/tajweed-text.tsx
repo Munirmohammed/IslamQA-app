@@ -1,4 +1,4 @@
-import { Alert, Text, useColorScheme } from 'react-native';
+import { Alert, Text } from 'react-native';
 
 import { ArabicText } from '@/components/arabic-text';
 import { familyForRule, tajweedColor } from '@/constants/tajweed-colors';
@@ -21,7 +21,9 @@ interface TajweedTextProps {
  * component, since that's all "tap a letter, see what rule it is" needs.
  */
 export function TajweedText({ plainText, rules }: TajweedTextProps) {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  // This app always renders the dark palette (see use-theme.ts) -- no
+  // system-scheme check here either, for the same reason.
+  const scheme = 'dark';
   const sortedRules = [...rules].sort((a, b) => a.start - b.start);
 
   const segments: { text: string; rule: TajweedRule | null }[] = [];

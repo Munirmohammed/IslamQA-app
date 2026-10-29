@@ -8,10 +8,9 @@
   import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
   import { QueryClientProvider } from '@tanstack/react-query';
   import { useFonts } from 'expo-font';
-  import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from 'expo-router';
+  import { DarkTheme, ThemeProvider, type Theme } from 'expo-router';
   import * as SplashScreen from 'expo-splash-screen';
   import { useEffect, useState } from 'react';
-  import { useColorScheme } from 'react-native';
 
   import AppTabs from '@/components/app-tabs';
   import { LaunchAnimation } from '@/components/launch-animation';
@@ -31,13 +30,12 @@
 // `card`/`background`/`text`/`primary`/`border` here fixes every native
 // header and the default tab bar at once, instead of repeating
 // `headerStyle`/`headerTintColor` across five separate per-tab layouts.
-function buildNavigationTheme(scheme: 'light' | 'dark' | 'amoled'): Theme {
-  const base = scheme === 'light' ? DefaultTheme : DarkTheme;
+function buildNavigationTheme(scheme: 'dark' | 'amoled'): Theme {
   const colors = Colors[scheme];
   return {
-    ...base,
+    ...DarkTheme,
     colors: {
-      ...base.colors,
+      ...DarkTheme.colors,
       background: colors.background,
       card: colors.background,
       text: colors.text,
@@ -50,7 +48,6 @@ function buildNavigationTheme(scheme: 'light' | 'dark' | 'amoled'): Theme {
 SplashScreen.preventAutoHideAsync();
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const hydrate = useAuthStore((s) => s.hydrate);
   const isHydrating = useAuthStore((s) => s.isHydrating);
   const darkMode = useThemeModeStore((s) => s.mode);
@@ -77,7 +74,7 @@ export default function TabLayout() {
   }, [hydrate, hydrateThemeMode, hydrateDailyGoals]);
 
   const ready = fontsLoaded && !isHydrating && isThemeModeHydrated;
-  const resolvedScheme = colorScheme === 'dark' ? (darkMode === 'amoled' ? 'amoled' : 'dark') : 'light';
+  const resolvedScheme = darkMode === 'amoled' ? 'amoled' : 'dark';
 
   useEffect(() => {
     // Hand off from the native splash screen to our own LaunchAnimation

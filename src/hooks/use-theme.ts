@@ -6,7 +6,6 @@
 import { createContext, useContext } from 'react';
 
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeModeStore } from '@/stores/theme-mode-store';
 
 interface ThemeOverride {
@@ -26,15 +25,21 @@ interface ThemeOverride {
 const ReadingThemeOverrideContext = createContext<ThemeOverride | null>(null);
 export const ReadingThemeOverrideProvider = ReadingThemeOverrideContext.Provider;
 
+/** Always resolves to the dark (or AMOLED) palette, never the system's
+ * light/dark preference -- this app has exactly one visual identity (the
+ * dark teal Qalam look every real Muslim Pro reference screenshot and the
+ * full approved design canvas used), not a system-driven light variant
+ * nobody designed or asked for. Previously this followed
+ * `useColorScheme()`, which silently rendered `Colors.light` -- a pale,
+ * never-reviewed palette -- on any device whose OS appearance happened to
+ * be set to light, which is exactly what made the real phone look like a
+ * different, unfinished app next to every dark-mode web preview used to
+ * verify changes during development. `Colors.light` itself is left in
+ * place (not deleted) since `ReadingThemes` and other call sites may
+ * still reference the `ThemeColor` shape it defines. */
 export function useTheme() {
-  const scheme = useColorScheme();
   const darkMode = useThemeModeStore((s) => s.mode);
-  // RN's ColorSchemeName is 'light' | 'dark' | null (SDK 58 dropped the
-  // 'unspecified' value from the type) -- null (scheme not yet resolved,
-  // or a platform that doesn't report one) falls back to light same as
-  // any other non-dark value.
-  const resolved = scheme === 'dark' ? 'dark' : 'light';
-  const theme = resolved === 'dark' && darkMode === 'amoled' ? 'amoled' : resolved;
+  const theme = darkMode === 'amoled' ? 'amoled' : 'dark';
   const override = useContext(ReadingThemeOverrideContext);
 
   return override ? { ...Colors[theme], ...override } : Colors[theme];

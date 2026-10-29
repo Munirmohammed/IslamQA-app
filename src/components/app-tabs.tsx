@@ -1,11 +1,14 @@
 import { NativeTabs } from 'expo-router/native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  // useTheme() (not a separate useColorScheme() check) so the native tab
+  // bar always matches the rest of the app -- this used to independently
+  // pick Colors.light/dark off the system scheme, which is exactly how a
+  // phone with its OS appearance set to light ended up with a pale native
+  // tab bar underneath an otherwise-dark app on every other screen.
+  const colors = useTheme();
 
   return (
     <NativeTabs
