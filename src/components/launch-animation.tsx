@@ -56,11 +56,24 @@ const WORDMARK_OUT_MS = 400;
 
 const EASE = Easing.bezier(0.65, 0, 0.35, 1);
 
+// A placeholder dasharray/offset pair used before the real path length is
+// measured -- large enough to exceed any real geometry's length, with
+// offset equal to dasharray so the stroke stays fully hidden (same "hide
+// via matching offset" trick the real animation uses) until the actual
+// measured length swaps in. Previously the AnimatedPath/AnimatedCircle
+// were conditionally rendered (`pathLength !== null && <>...</>`) inside
+// <Svg> until measurement completed -- a Fragment-with-conditional-
+// children directly inside <Svg> that crashed under the New Architecture
+// (required as of Expo SDK 58) with "Invalid svg returned from registry,
+// expecting RNSVGRenderable, got: (null)". Rendering unconditionally with
+// a safe fallback avoids that mount/unmount churn entirely.
+const UNMEASURED_LENGTH = 2000;
+
 export function LaunchAnimation({ onFinish }: { onFinish: () => void }) {
   const pathRef = useRef<Path>(null);
-  const [pathLength, setPathLength] = useState<number | null>(null);
+  const [pathLength, setPathLength] = useState<number>(UNMEASURED_LENGTH);
 
-  const dashOffset = useSharedValue(0);
+  const dashOffset = useSharedValue(UNMEASURED_LENGTH);
   const dotScale = useSharedValue(0);
   const rotation = useSharedValue(0);
   const wordmarkOpacity = useSharedValue(0);
@@ -148,26 +161,22 @@ export function LaunchAnimation({ onFinish }: { onFinish: () => void }) {
               length via getTotalLength(), which the visible AnimatedPath
               below (identical geometry) uses for its stroke-dasharray. */}
           <Path ref={pathRef} d={SWASH_D} stroke="none" fill="none" />
-          {pathLength !== null && (
-            <>
-              <AnimatedPath
-                d={SWASH_D}
-                fill="none"
-                stroke={EMERALD}
-                strokeWidth={46}
-                strokeLinecap="round"
-                strokeDasharray={pathLength}
-                animatedProps={pathAnimatedProps}
-              />
-              <AnimatedCircle
-                cx={DOT_CX}
-                cy={DOT_CY}
-                r={DOT_R}
-                fill={GOLD}
-                animatedProps={dotAnimatedProps}
-              />
-            </>
-          )}
+          <AnimatedPath
+            d={SWASH_D}
+            fill="none"
+            stroke={EMERALD}
+            strokeWidth={46}
+            strokeLinecap="round"
+            strokeDasharray={pathLength}
+            animatedProps={pathAnimatedProps}
+          />
+          <AnimatedCircle
+            cx={DOT_CX}
+            cy={DOT_CY}
+            r={DOT_R}
+            fill={GOLD}
+            animatedProps={dotAnimatedProps}
+          />
         </Svg>
       </Animated.View>
       <Animated.View style={wordmarkAnimatedStyle}>
