@@ -97,7 +97,16 @@ export function CustomTabList(props: TabListProps) {
 
 const styles = StyleSheet.create({
   tabListContainer: {
+    // Pinned to the bottom, not the top -- this previously had no `top`/
+    // `bottom` set at all, so it defaulted to the top of the screen and
+    // silently overlapped every screen's own header content (confirmed via
+    // Playwright: a click where a header button's own getBoundingClientRect
+    // said it was actually hit this tab bar instead). The native app's own
+    // NativeTabs always render at the bottom, so this also makes the web
+    // preview finally match what's really running on a phone instead of
+    // looking like a different app.
     position: 'absolute',
+    bottom: 0,
     width: '100%',
     padding: Spacing.three,
     justifyContent: 'center',

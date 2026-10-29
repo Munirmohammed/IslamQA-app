@@ -10,17 +10,21 @@ import { DHIKR_PHRASES } from '@/lib/tasbih-data';
  * preference. Progress *does* survive navigating away and back within a
  * session, which is the behavior that actually matters for a counter.
  */
+export type BeadColor = 'green' | 'rose' | 'turquoise' | 'amethyst' | 'pearl' | 'onyx';
+
 interface TasbihState {
   dhikrId: string;
   target: number;
   count: number;
   loopCount: number;
   hapticsEnabled: boolean;
+  beadColor: BeadColor;
   increment: () => void;
   reset: () => void;
   setDhikr: (dhikrId: string) => void;
   setTarget: (target: number) => void;
   toggleHaptics: () => void;
+  setBeadColor: (color: BeadColor) => void;
 }
 
 export const useTasbihStore = create<TasbihState>((set) => ({
@@ -29,6 +33,7 @@ export const useTasbihStore = create<TasbihState>((set) => ({
   count: 0,
   loopCount: 0,
   hapticsEnabled: true,
+  beadColor: 'green',
   increment: () =>
     set((state) => {
       const next = state.count + 1;
@@ -48,4 +53,5 @@ export const useTasbihStore = create<TasbihState>((set) => ({
   setDhikr: (dhikrId) => set({ dhikrId, count: 0, loopCount: 0 }),
   setTarget: (target) => set({ target, count: 0, loopCount: 0 }),
   toggleHaptics: () => set((state) => ({ hapticsEnabled: !state.hapticsEnabled })),
+  setBeadColor: (beadColor) => set({ beadColor }),
 }));

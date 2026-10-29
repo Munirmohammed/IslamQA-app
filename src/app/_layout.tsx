@@ -1,4 +1,10 @@
   import { ArefRuqaa_400Regular, ArefRuqaa_700Bold } from '@expo-google-fonts/aref-ruqaa';
+  import {
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+  } from '@expo-google-fonts/manrope';
   import { NotoNaskhArabic_400Regular, NotoNaskhArabic_700Bold } from '@expo-google-fonts/noto-naskh-arabic';
   import { QueryClientProvider } from '@tanstack/react-query';
   import { useFonts } from 'expo-font';
@@ -58,6 +64,10 @@ export default function TabLayout() {
     NotoNaskhArabic_700Bold,
     ArefRuqaa_400Regular,
     ArefRuqaa_700Bold,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
   });
 
   useEffect(() => {

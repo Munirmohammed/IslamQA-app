@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useId, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle, Defs, Path, RadialGradient, Stop } from 'react-native-svg';
 
 import { ArabicText } from '@/components/arabic-text';
 import { ThemedText } from '@/components/themed-text';
@@ -11,33 +13,120 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { DHIKR_PHRASES, TASBIH_TARGETS, getDhikrPhrase } from '@/lib/tasbih-data';
-import { useTasbihStore } from '@/stores/tasbih-store';
+import { type BeadColor, useTasbihStore } from '@/stores/tasbih-store';
 
-const BEAD_SIZE = 16;
+// Each bead color's lit (highlight -> mid -> shadow) gradient stops and its
+// dim/unlit equivalent -- real glossy-sphere illustrations (react-native-svg
+// radial gradients), not the flat dot grid this screen used before, matching
+// the approved design's bead-string artwork exactly.
+const BEAD_PALETTES: Record<BeadColor, { lit: [string, string, string]; dim: [string, string, string] }> = {
+  green: { lit: ['#6CF0B4', '#17E08A', '#0A8A57'], dim: ['#2E5B50', '#184038', '#0C2621'] },
+  rose: { lit: ['#F6B8C4', '#E06B85', '#8C3447'], dim: ['#5B3238', '#3A1F24', '#1F0F12'] },
+  turquoise: { lit: ['#9FE3EC', '#3FADC4', '#1D5F72'], dim: ['#2A4850', '#1A2E33', '#0D171A'] },
+  amethyst: { lit: ['#C9ACF5', '#8B5FD6', '#4B2E82'], dim: ['#3E3250', '#272035', '#14101C'] },
+  pearl: { lit: ['#FDFBF6', '#E7E1D3', '#AFA790'], dim: ['#4A4840', '#302E29', '#191815'] },
+  onyx: { lit: ['#5A5A60', '#2A2A2E', '#111113'], dim: ['#232326', '#161618', '#0A0A0B'] },
+};
 
-/** A plain grid of small circles standing in for Muslim Pro's actual
- * illustrated curved string of beads (see the reference screenshot this
- * screen was built from) -- an honest, buildable equivalent rather than a
- * fabricated bead illustration this app has no art assets for. Filled
- * beads (0..count-1) show progress through the current loop; the rest
- * stay outlined. */
-function BeadGrid({ count, target }: { count: number; target: number }) {
-  const theme = useTheme();
-  const beads = useMemo(() => Array.from({ length: target }, (_, i) => i), [target]);
+const BEAD_COLOR_ORDER: BeadColor[] = ['green', 'rose', 'turquoise', 'amethyst', 'pearl', 'onyx'];
+
+function Bead({ size, lit, stops, imam }: { size: number; lit: boolean; stops: [string, string, string]; imam?: boolean }) {
+  // useId() includes colons (e.g. ":r0:"), which aren't safe inside an SVG
+  // url(#id) reference on every renderer -- stripped down to the
+  // alphanumeric id SVG actually expects.
+  const id = `bead-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Defs>
+        <RadialGradient id={id} cx="35%" cy="30%" r="75%">
+          <Stop offset="0%" stopColor={stops[0]} />
+          <Stop offset="55%" stopColor={stops[1]} />
+          <Stop offset="100%" stopColor={stops[2]} />
+        </RadialGradient>
+      </Defs>
+      <Circle cx="12" cy="12" r={imam ? 11.5 : 11} fill={`url(#${id})`} opacity={lit || imam ? 1 : 0.9} />
+    </Svg>
+  );
+}
+
+/** A real illustrated bead string -- glossy spheres draped in a gentle arc
+ * (a parabola of per-bead vertical offsets, same shape a physical misbaha
+ * hangs in), with a larger gold "imam" bead marking the end, replacing the
+ * plain dot-grid this screen used before. Filled/lit beads show progress
+ * through the current loop. */
+function BeadString({ count, target, color }: { count: number; target: number; color: BeadColor }) {
+  const palette = BEAD_PALETTES[color];
+  // 13 beads on screen regardless of the real target -- an illustration of
+  // progress, not a literal one-bead-per-count string (a target of 100
+  // would make individual beads illegibly small); position within the 13
+  // scales proportionally to count/target.
+  const BEAD_COUNT = 13;
+  const litBeads = Math.round((count / Math.max(1, target)) * BEAD_COUNT);
+  const DROOP = [0, 12, 21, 29, 34, 37, 38, 37, 34, 29, 21, 12, 0];
 
   return (
-    <View style={styles.beadGrid}>
-      {beads.map((i) => (
-        <View
-          key={i}
-          style={[
-            styles.bead,
-            {
-              backgroundColor: i < count ? theme.primary : 'transparent',
-              borderColor: i < count ? theme.primary : theme.border,
-            },
-          ]}
-        />
+    <View style={styles.beadStringRow}>
+      {DROOP.map((offset, i) => (
+        <View key={i} style={{ transform: [{ translateY: offset * 0.7 }] }}>
+          <Bead size={19} lit={i < litBeads} stops={i < litBeads ? palette.lit : palette.dim} />
+        </View>
+      ))}
+      <View style={{ transform: [{ translateY: -4 }] }}>
+        <Bead size={25} lit stops={['#F6D996', '#E3B869', '#9C7536']} imam />
+      </View>
+    </View>
+  );
+}
+
+/** A simple line illustration of hands raised in dua, matching the
+ * approved design's "Start a dhikr" card artwork -- a real, if modest,
+ * drawn illustration (react-native-svg paths), not a stock photo this app
+ * has no license for. */
+function DuaHandsIllustration() {
+  return (
+    <Svg width={64} height={64} viewBox="0 0 100 100">
+      <Path
+        d="M30 72c-4-10-3-24 4-32 3-4 4-10 2-15-1-3 1-6 4-5 4 1 6 6 5 11"
+        fill="none"
+        stroke="#E3B869"
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M70 72c4-10 3-24-4-32-3-4-4-10-2-15 1-3-1-6-4-5-4 1-6 6-5 11"
+        fill="none"
+        stroke="#E3B869"
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Circle cx="50" cy="40" r="4" fill="#17E08A" />
+      <Circle cx="38" cy="48" r="3" fill="#17E08A" opacity={0.8} />
+      <Circle cx="62" cy="48" r="3" fill="#17E08A" opacity={0.8} />
+      <Path
+        d="M30 72c6 8 14 13 20 13s14-5 20-13"
+        fill="none"
+        stroke="#E3B869"
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function BeadSwatches({ selected, onSelect }: { selected: BeadColor; onSelect: (c: BeadColor) => void }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.swatchRow}>
+      {BEAD_COLOR_ORDER.map((c) => (
+        <Pressable key={c} onPress={() => onSelect(c)} hitSlop={4}>
+          <View
+            style={[
+              styles.swatch,
+              c === selected && { borderColor: theme.primary, borderWidth: 2 },
+            ]}>
+            <Bead size={38} lit stops={BEAD_PALETTES[c].lit} />
+          </View>
+        </Pressable>
       ))}
     </View>
   );
@@ -103,28 +192,18 @@ function DhikrPickerModal({
   );
 }
 
-/** Muslim Pro's real Tasbih screen (reference screenshot: title + Loop
- * subtitle, a big "NN / target" counter, a curved bead illustration, a
- * "Start Dhikr / Select a Dhikr" card, and a bottom row of bead-material
- * swatches) built against this app's own standard theme rather than that
- * screenshot's lighter background -- every *other* screen captured in the
- * same research round (Home, Prayers, Qibla, Quran, Duas) is this app's
- * usual dark teal, so the one light Tasbih capture reads as that phone's
- * system/app appearance having been toggled for that single shot, not as
- * Muslim Pro deliberately skinning just this one screen differently from
- * the rest of its own app. Staying on the shared theme keeps Tasbih
- * visually consistent with Qalam's identity instead of introducing a
- * one-off light screen.
- *
- * The bead-color/material swatch row from the screenshot is deliberately
- * left out -- a cosmetic skin picker, not the actual counting mechanic
- * this screen exists to deliver. The curved illustrated bead string is
- * likewise simplified to BeadGrid above. The header's reset icon is real
- * (clears count + loop); the speaker icon is wired to this screen's real
- * tactile feedback -- haptics -- rather than silently doing nothing, since
- * there's no bundled tap-click sound asset in this app to back a literal
- * mute toggle (the same "don't fake it" call azkar-category.tsx makes for
- * its own missing Audio tab). */
+/** Rebuilt against the full-app design canvas the user approved before any
+ * implementation (every screen's colors/layout signed off up front): a
+ * real illustrated bead string (glossy SVG spheres draped in an arc, see
+ * BeadString above) with a selectable bead-color swatch row, a dhikr
+ * display card, and a separate "Start a dhikr" card with a drawn dua-hands
+ * illustration. The bead color choice is real and persisted
+ * (tasbih-store's beadColor), not just decorative. The header's reset icon
+ * is real (clears count + loop); the speaker icon is wired to this
+ * screen's real tactile feedback -- haptics -- rather than silently doing
+ * nothing, since there's no bundled tap-click sound asset in this app to
+ * back a literal mute toggle (the same "don't fake it" call
+ * azkar-category.tsx makes for its own missing Audio tab). */
 export default function TasbihScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -135,11 +214,13 @@ export default function TasbihScreen() {
   const count = useTasbihStore((s) => s.count);
   const loopCount = useTasbihStore((s) => s.loopCount);
   const hapticsEnabled = useTasbihStore((s) => s.hapticsEnabled);
+  const beadColor = useTasbihStore((s) => s.beadColor);
   const increment = useTasbihStore((s) => s.increment);
   const reset = useTasbihStore((s) => s.reset);
   const setDhikr = useTasbihStore((s) => s.setDhikr);
   const setTarget = useTasbihStore((s) => s.setTarget);
   const toggleHaptics = useTasbihStore((s) => s.toggleHaptics);
+  const setBeadColor = useTasbihStore((s) => s.setBeadColor);
 
   const dhikr = getDhikrPhrase(dhikrId);
   const completingLoop = count + 1 >= target;
@@ -196,7 +277,7 @@ export default function TasbihScreen() {
           </Pressable>
 
           <Pressable onPress={handleTap}>
-            <BeadGrid count={count} target={target} />
+            <BeadString count={count} target={target} color={beadColor} />
           </Pressable>
 
           <View style={styles.targetRow}>
@@ -224,25 +305,38 @@ export default function TasbihScreen() {
             </ArabicText>
             <ThemedText type="smallBold">{dhikr.transliteration}</ThemedText>
             <ThemedText themeColor="textSecondary">{dhikr.translation}</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary" style={styles.dhikrReference}>
+            <ThemedText type="small" themeColor="textFaint" style={styles.dhikrReference}>
               {dhikr.reference}
             </ThemedText>
-
-            <Pressable onPress={() => setPickerOpen(true)}>
-              {({ pressed }) => (
-                <View
-                  style={[
-                    styles.selectButton,
-                    { backgroundColor: theme.primary },
-                    pressed && styles.pressed,
-                  ]}>
-                  <ThemedText type="smallBold" style={styles.selectButtonLabel}>
-                    Select a Dhikr
-                  </ThemedText>
-                </View>
-              )}
-            </Pressable>
           </ThemedView>
+
+          <LinearGradient
+            colors={[theme.backgroundElement, theme.gradientBannerEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.startDhikrCard}>
+            <View style={styles.startDhikrText}>
+              <ThemedText type="smallBold">Start a dhikr</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.startDhikrSubtitle}>
+                Don&rsquo;t just count &mdash; make every tasbih mean something.
+              </ThemedText>
+              <Pressable onPress={() => setPickerOpen(true)}>
+                {({ pressed }) => (
+                  <View style={[styles.selectButton, { backgroundColor: theme.primary }, pressed && styles.pressed]}>
+                    <ThemedText type="smallBold" style={styles.selectButtonLabel}>
+                      Select a Dhikr
+                    </ThemedText>
+                  </View>
+                )}
+              </Pressable>
+            </View>
+            <DuaHandsIllustration />
+          </LinearGradient>
+
+          <ThemedText type="smallBold" style={styles.swatchLabel}>
+            Bead Style
+          </ThemedText>
+          <BeadSwatches selected={beadColor} onSelect={setBeadColor} />
         </ScrollView>
       </SafeAreaView>
 
@@ -302,18 +396,40 @@ const styles = StyleSheet.create({
     fontSize: 72,
     lineHeight: 80,
   },
-  beadGrid: {
+  beadStringRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    gap: Spacing.two,
-    maxWidth: 320,
+    gap: 4,
+    paddingHorizontal: Spacing.two,
   },
-  bead: {
-    width: BEAD_SIZE,
-    height: BEAD_SIZE,
-    borderRadius: BEAD_SIZE / 2,
-    borderWidth: 2,
+  startDhikrCard: {
+    width: '100%',
+    borderRadius: Radius.card,
+    padding: Spacing.four,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  startDhikrText: {
+    flex: 1,
+    gap: Spacing.one,
+  },
+  startDhikrSubtitle: {
+    marginBottom: Spacing.one,
+  },
+  swatchLabel: {
+    alignSelf: 'flex-start',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  swatchRow: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+  },
+  swatch: {
+    borderRadius: 24,
+    padding: 2,
   },
   targetRow: {
     flexDirection: 'row',

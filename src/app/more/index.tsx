@@ -3,11 +3,14 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppHeader } from '@/components/app-header';
+import { Avatar } from '@/components/avatar';
 import { SettingsSection, type SettingsRowItem } from '@/components/settings-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useLogin, useLogout, useMe, useRegister } from '@/features/auth/api';
+import { useStreak } from '@/features/gamification/api';
+import { useMemorizationProgress } from '@/features/memorization/api';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -116,21 +119,63 @@ function AuthForm() {
 
 function ProfileDetails() {
   const { data: me } = useMe();
+  const { data: streak } = useStreak();
+  const { data: progress } = useMemorizationProgress();
   const logout = useLogout();
 
+  const masteredCount = progress?.surahs.reduce((sum, s) => sum + s.ayahs_learned, 0) ?? 0;
+
   return (
-    <ThemedView type="backgroundElement" style={styles.card}>
-      <ThemedText type="smallBold">{me?.username}</ThemedText>
-      <ThemedText themeColor="textSecondary">{me?.email}</ThemedText>
+    <>
+      <ThemedView type="backgroundElement" style={styles.profileCard}>
+        <Avatar label={me?.username ?? '?'} size={54} />
+        <View style={styles.profileText}>
+          <ThemedText type="smallBold" style={styles.profileName}>
+            {me?.username}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {me?.email}
+          </ThemedText>
+        </View>
+      </ThemedView>
+
+      {streak && (
+        <View style={styles.statsRow}>
+          <ThemedView type="backgroundElement" style={styles.statTile}>
+            <ThemedText type="smallBold" themeColor="accent" style={styles.statNumber}>
+              {streak.current_streak}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textFaint">
+              Day streak
+            </ThemedText>
+          </ThemedView>
+          <ThemedView type="backgroundElement" style={styles.statTile}>
+            <ThemedText type="smallBold" themeColor="primary" style={styles.statNumber}>
+              {streak.total_hasanat.toLocaleString()}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textFaint">
+              Hasanat
+            </ThemedText>
+          </ThemedView>
+          <ThemedView type="backgroundElement" style={styles.statTile}>
+            <ThemedText type="smallBold" style={styles.statNumber}>
+              {masteredCount}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textFaint">
+              Mastered
+            </ThemedText>
+          </ThemedView>
+        </View>
+      )}
 
       <Pressable onPress={() => logout.mutate()}>
         {({ pressed }) => (
-          <ThemedView style={[styles.submitButton, pressed && styles.pressed]}>
+          <ThemedView type="backgroundElement" style={[styles.submitButton, pressed && styles.pressed]}>
             <ThemedText type="smallBold">Log out</ThemedText>
           </ThemedView>
         )}
       </Pressable>
-    </ThemedView>
+    </>
   );
 }
 
@@ -179,6 +224,34 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     padding: Spacing.four,
     gap: Spacing.three,
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    borderRadius: Radius.card,
+    padding: Spacing.four,
+  },
+  profileText: {
+    flex: 1,
+    gap: 2,
+  },
+  profileName: {
+    fontSize: 15.5,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  statTile: {
+    flex: 1,
+    borderRadius: Radius.card,
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statNumber: {
+    fontSize: 16,
   },
   toolsSection: {
     gap: Spacing.two,

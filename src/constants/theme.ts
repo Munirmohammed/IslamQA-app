@@ -7,30 +7,18 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-/** Muslim Pro's actual palette. The values below are a second, corrected
- * measurement, superseding the first pass: that one was pixel-sampled
- * from Play Store marketing screenshots, which turned out to run
- * lighter and less saturated than the real app. These are measured
- * (Pillow, dominant-color histograms, not eyeballed) from real
- * screenshots taken directly off a phone running the live app --
- * `#003228` dominates every dark screen measured (Today, Prayers, Quran
- * list) at 35-45% of pixels, darker than the first pass's `#003030`, and
- * `#00D278` is its real accent green -- a vivid, saturated green, not
- * the muted sage `#48A884` the first pass used. Muslim Pro's own cream
- * (`#FCF0D8`, its "Paper" Quran-reading theme specifically) was tried
- * here first as this app's *general* light background -- a mistake,
- * since every other screen measured (Prayers, Quran list, Today) is the
- * dark teal, not cream, and it read as "yellow" rather than "the green
- * Muslim Pro app." The light background below is a light tint of the
- * real green instead; the existing Quran-reading-only theme picker
- * (`ReadingThemes` below, a separate, still-valid feature sourced from
- * Quran.com) is untouched and still offers an actual cream-toned "Paper"
- * option for anyone who wants one, just not as this app's default. */
-const MUSLIM_PRO_DARK_BG = '#002828';
-const MUSLIM_PRO_DARK_CARD = '#003228';
-const MUSLIM_PRO_DARK_TEXT = '#FCFCFC';
-const MUSLIM_PRO_GREEN = '#00D278';
-const MUSLIM_PRO_LIGHT_BG = mixHex('#FFFFFF', MUSLIM_PRO_GREEN, 0.06);
+/** The approved Qalam palette -- signed off by the user directly on a
+ * full-app design pass (11 screens, one canvas) before any of this was
+ * implemented, superseding the earlier Muslim-Pro-measured values below
+ * it in git history. These exact hex values are the source of truth now;
+ * match them exactly rather than re-deriving or eyeballing. */
+const DARK_BG = '#002A28';
+const DARK_SURFACE = '#0B3D38';
+const DARK_SURFACE_2 = '#0F4A42';
+const DARK_TEXT = '#F6FBF9';
+const BRAND_GREEN = '#17E08A';
+const BRAND_GOLD = '#E3B869';
+const MUSLIM_PRO_LIGHT_BG = mixHex('#FFFFFF', BRAND_GREEN, 0.06);
 const MUSLIM_PRO_LIGHT_TEXT = '#1A1A1A';
 
 export const Colors = {
@@ -40,6 +28,7 @@ export const Colors = {
     backgroundElement: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.06),
     backgroundSelected: mixHex(MUSLIM_PRO_LIGHT_BG, MUSLIM_PRO_LIGHT_TEXT, 0.12),
     textSecondary: mixHex(MUSLIM_PRO_LIGHT_TEXT, MUSLIM_PRO_LIGHT_BG, 0.45),
+    textFaint: mixHex(MUSLIM_PRO_LIGHT_TEXT, MUSLIM_PRO_LIGHT_BG, 0.65),
     primary: '#0F6B4F',
     primaryMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#0F6B4F', 0.14),
     accent: '#C9A24B',
@@ -49,69 +38,36 @@ export const Colors = {
     mistakeModerate: '#D9762B',
     mistakeLow: '#C9A23B',
     recitationHighlight: '#DC7702',
-    // A stronger, more visible outline than `border` -- used for the
-    // Prayers screen's current-prayer row (an outlined box, not a filled
-    // background; see `outlineStrong` dark-mode comment, pixel-sampled
-    // from the real device screenshot). Derived the same "mix off an
-    // existing color" way as everything else here rather than a fixed hex.
     outlineStrong: mixHex(MUSLIM_PRO_LIGHT_TEXT, MUSLIM_PRO_LIGHT_BG, 0.65),
-    // Derived from the real background rather than a fixed value, so it
-    // stays visibly distinct whatever the background actually is instead
-    // of silently matching it (the previous fixed `#FBEBD7` nearly
-    // vanished against an earlier cream background this app no longer
-    // uses -- see MUSLIM_PRO_LIGHT_BG's own comment above).
     recitationHighlightMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#DC7702', 0.22),
-    // Muslim Pro's signature diagonal green->purple gradient, used on its
-    // real Home/"Today" tab for both its "Unlock ad-free" and "Get
-    // Premium" banners -- pixel-sampled off the real device screenshot
-    // (Pillow, averaging clean fill pixels at each end of the pill,
-    // excluding background and the white banner text/icon) rather than
-    // eyeballed: the left end reads ~rgb(14-23,150-157,98-101), the right
-    // end ~rgb(46-48,26-44,100-104). Used here for this app's own feature/
-    // community CTA banners (see Home), not a literal premium upsell --
-    // this app has no premium tier. Kept identical across light/dark: a
-    // brand gradient reads as a deliberate splash of color regardless of
-    // the surrounding theme, the same way the real app's gradient doesn't
-    // change with system appearance either.
-    gradientBannerStart: '#0E9A62',
-    gradientBannerEnd: '#2E1F64',
-    // A tinted-card background for a dismissible alert banner -- adapted
-    // from Muslim Pro's real solid dark-red "Your premium has expired"
-    // bar (this app has no premium/subscription concept to clone that
-    // literally for), reusing this app's own existing `error` red mixed
-    // into the card surface instead of a fixed new hex, the same
-    // derivation `tileRose` above already uses.
+    gradientBannerStart: '#12A071',
+    gradientBannerEnd: '#2A1E63',
     dangerMuted: mixHex(MUSLIM_PRO_LIGHT_BG, '#C0392B', 0.16),
   },
   dark: {
-    text: MUSLIM_PRO_DARK_TEXT,
-    background: MUSLIM_PRO_DARK_BG,
-    backgroundElement: MUSLIM_PRO_DARK_CARD,
-    backgroundSelected: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.1),
-    textSecondary: '#A8C4B8',
-    primary: MUSLIM_PRO_GREEN,
-    primaryMuted: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_GREEN, 0.2),
-    accent: '#D8B463',
-    border: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.12),
-    error: '#E0574A',
-    success: '#3DAF72',
-    mistakeModerate: '#E68A42',
-    mistakeLow: '#D6B34C',
+    text: DARK_TEXT,
+    background: DARK_BG,
+    backgroundElement: DARK_SURFACE,
+    backgroundSelected: DARK_SURFACE_2,
+    textSecondary: '#9FC2B6',
+    // A third, dimmer text tier the approved design uses for the least
+    // important label on a row (timestamps, muted captions) -- distinct
+    // from `textSecondary`, not a duplicate of it.
+    textFaint: '#6F9589',
+    primary: BRAND_GREEN,
+    primaryMuted: mixHex(DARK_SURFACE, BRAND_GREEN, 0.2),
+    accent: BRAND_GOLD,
+    border: 'rgba(168,196,184,0.14)',
+    error: '#F0735A',
+    success: BRAND_GREEN,
+    mistakeModerate: '#E89A4D',
+    mistakeLow: '#E3C94D',
     recitationHighlight: '#EF911D',
     recitationHighlightMuted: '#2E2112',
-    // Same sampled gradient as light -- see its comment above.
-    gradientBannerStart: '#0E9A62',
-    gradientBannerEnd: '#2E1F64',
-    // Same adapted-alert derivation as light, mixed into the dark card instead.
-    dangerMuted: mixHex(MUSLIM_PRO_DARK_CARD, '#E0574A', 0.22),
-    // Pixel-sampled (Pillow) from the real device Prayers screenshot: the
-    // outline box around the current prayer's row (e.g. "Asr" when it's the
-    // active prayer period) reads ~#ACC0C1 at both its top and bottom edge
-    // (y=667 and y=737 on the 588x1280 reference image) -- a light,
-    // slightly cool-tinted gray, not pure white and not the brand green.
-    // mixHex(card, text, 0.7) lands at #B0BFBC, a close match, so it's
-    // derived rather than hardcoded like the rest of this palette.
-    outlineStrong: mixHex(MUSLIM_PRO_DARK_CARD, MUSLIM_PRO_DARK_TEXT, 0.7),
+    gradientBannerStart: '#12A071',
+    gradientBannerEnd: '#2A1E63',
+    dangerMuted: mixHex(DARK_SURFACE, '#F0735A', 0.22),
+    outlineStrong: mixHex(DARK_SURFACE, DARK_TEXT, 0.7),
   },
   // A true-black alternative to the dark teal above, for OLED screens --
   // a real, user-toggleable feature (not system-driven, see
@@ -122,25 +78,26 @@ export const Colors = {
   // black (Tailwind's neutral-950/900/800, the closest common "AMOLED
   // app" convention) instead of the teal-tinted dark scale.
   amoled: {
-    text: MUSLIM_PRO_DARK_TEXT,
+    text: DARK_TEXT,
     background: '#000000',
     backgroundElement: '#0a0a0a',
     backgroundSelected: '#171717',
     textSecondary: '#a3a3a3',
-    primary: MUSLIM_PRO_GREEN,
-    primaryMuted: mixHex('#0a0a0a', MUSLIM_PRO_GREEN, 0.2),
-    accent: '#D8B463',
+    textFaint: '#6b6b6b',
+    primary: BRAND_GREEN,
+    primaryMuted: mixHex('#0a0a0a', BRAND_GREEN, 0.2),
+    accent: BRAND_GOLD,
     border: '#262626',
-    error: '#E0574A',
-    success: '#3DAF72',
-    mistakeModerate: '#E68A42',
-    mistakeLow: '#D6B34C',
+    error: '#F0735A',
+    success: BRAND_GREEN,
+    mistakeModerate: '#E89A4D',
+    mistakeLow: '#E3C94D',
     recitationHighlight: '#EF911D',
     recitationHighlightMuted: '#2E2112',
-    gradientBannerStart: '#0E9A62',
-    gradientBannerEnd: '#2E1F64',
-    dangerMuted: mixHex('#0a0a0a', '#E0574A', 0.22),
-    outlineStrong: mixHex('#0a0a0a', MUSLIM_PRO_DARK_TEXT, 0.7),
+    gradientBannerStart: '#12A071',
+    gradientBannerEnd: '#2A1E63',
+    dangerMuted: mixHex('#0a0a0a', '#F0735A', 0.22),
+    outlineStrong: mixHex('#0a0a0a', DARK_TEXT, 0.7),
   },
 } as const;
 
@@ -215,10 +172,23 @@ export const ArabicTypeScale = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
+/** Manrope is the approved design's UI typeface (every mockup used it for
+ * all non-Arabic text), loaded as four static weights in _layout.tsx.
+ * Static (non-variable) custom fonts don't respond to a separate
+ * `fontWeight` style prop the way the system font does -- each weight
+ * needs its own `fontFamily` name -- so `UiFonts` maps the weight tiers
+ * ThemedText's `type`s actually use onto the specific loaded family name,
+ * and call sites should reach for one of these rather than pairing a
+ * generic `fontFamily` with a `fontWeight` number. */
+export const UiFonts = {
+  medium: 'Manrope_500Medium',
+  semiBold: 'Manrope_600SemiBold',
+  bold: 'Manrope_700Bold',
+  extraBold: 'Manrope_800ExtraBold',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
     /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
     /** iOS `UIFontDescriptorSystemDesignRounded` */
@@ -227,13 +197,11 @@ export const Fonts = Platform.select({
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
     serif: 'serif',
     rounded: 'normal',
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
     serif: 'var(--font-serif)',
     rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',

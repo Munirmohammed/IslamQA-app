@@ -201,7 +201,7 @@ function HeroBanner() {
         Unquestionably, by the remembrance of Allah hearts are assured.&quot; (13:28)
       </ThemedText>
       <Pressable onPress={() => router.push('/quran/1')} style={styles.heroButton} hitSlop={4}>
-        <Ionicons name="book-outline" size={15} color="#002828" />
+        <Ionicons name="book-outline" size={15} color="#06332E" />
         <ThemedText type="smallBold" style={styles.heroButtonText}>
           Open Mushaf
         </ThemedText>
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
   },
   heroButtonText: {
-    color: '#002828',
+    color: '#06332E',
   },
   utilityGrid: {
     flexDirection: 'row',
