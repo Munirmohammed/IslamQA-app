@@ -2,6 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Defers RN 0.88's new Strict TypeScript API (SDK 58) -- it reshapes
+    // ref types across the whole app (View/ScrollView refs now need
+    // ViewInstance/ScrollViewInstance types, not the old component types),
+    // a real, worthwhile migration but too large to do safely under the
+    // same deadline as the SDK bump itself. Per Expo's SDK 58 release
+    // notes, this opt-out is only supported through RN 0.89 -- a real
+    // follow-up, not permanent.
+    "customConditions": ["react-native", "react-native-legacy-deep-imports"],
     "paths": {
       "@/*": [
         "./src/*"

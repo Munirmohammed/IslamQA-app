@@ -29,7 +29,11 @@ export const ReadingThemeOverrideProvider = ReadingThemeOverrideContext.Provider
 export function useTheme() {
   const scheme = useColorScheme();
   const darkMode = useThemeModeStore((s) => s.mode);
-  const resolved = scheme === 'unspecified' ? 'light' : scheme;
+  // RN's ColorSchemeName is 'light' | 'dark' | null (SDK 58 dropped the
+  // 'unspecified' value from the type) -- null (scheme not yet resolved,
+  // or a platform that doesn't report one) falls back to light same as
+  // any other non-dark value.
+  const resolved = scheme === 'dark' ? 'dark' : 'light';
   const theme = resolved === 'dark' && darkMode === 'amoled' ? 'amoled' : resolved;
   const override = useContext(ReadingThemeOverrideContext);
 
